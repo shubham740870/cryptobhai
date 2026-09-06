@@ -62,7 +62,15 @@ class CryptoBot:
         try:
             r = requests.post(API.format(token=self.token, method=method),
                               data=data or {}, files=files, timeout=timeout)
-            return r.json() if r.status_code == 200 else None
+            if r.status_code == 200:
+                return r.json()
+            # error ka detail log karo (pehle silent fail ho raha tha)
+            try:
+                desc = r.json().get("description", r.text[:120])
+            except ValueError:
+                desc = r.text[:120]
+            log.warning("TG %s -> %s: %s", method, r.status_code, desc)
+            return None
         except requests.RequestException as e:
             log.warning("TG %s error: %s", method, e)
             return None
@@ -89,6 +97,9 @@ class CryptoBot:
                         continue
                     break
                 time.sleep(2)
+            else:
+                log.warning("sendMessage FAIL (chat_id=%s) - CHANNEL_ID secret "
+                            "aur bot admin status check karo", chat_id)
 
     def send_photo(self, chat_id, path, caption=""):
         """Chart image bhejo; fail hone pe caption text me chala jayega."""
