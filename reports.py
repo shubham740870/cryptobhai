@@ -118,6 +118,17 @@ def weekly_report(res):
         body += "\n"
         chunks.append(body)
 
+    invest = res.get("invest") or []
+    if invest:
+        body = "💼 <b>INVESTMENT CORNER (long-term DCA view)</b>\n"
+        for s, a in invest:
+            body += (f"• <b>{a['symbol']}</b> — {s['verdict']} "
+                     f"({s['score']:.0f}/100)\n")
+            for r in s["reasons"][:2]:
+                body += f"   • {r}\n"
+        body += "\n<i>Long-term = weeks/months hold. DCA karo, all-in nahi.</i>\n\n"
+        chunks.append(body)
+
     trending = res.get("trending") or []
     if trending:
         tnames = ", ".join(f"<b>{t['symbol']}</b>" for t in trending[:6])
@@ -141,6 +152,24 @@ def daily_report(res):
 
     alerts = res.get("alerts") or []
     body = ""
+    # ---- PRO DESK (BTC/ETH/SOL professional view) ----
+    pb = res.get("pro_brief") or []
+    if pb:
+        body += "🎓 <b>PRO DESK — BTC/ETH/SOL</b>\n"
+        for p in pb:
+            s_txt = (", ".join(analyzer.fmt_price(z) for z in p["sup"]) or "-")
+            r_txt = (", ".join(analyzer.fmt_price(z) for z in p["res"]) or "-")
+            body += (f"• <b>{p['sym']}</b> {p['bias']} ({p['pct']:.0f}% confluence, "
+                     f"{p['conviction']}) | Structure: {p['structure']['desc']}\n"
+                     f"  S: {s_txt} | R: {r_txt}\n")
+        body += "\n"
+    fm = res.get("forming") or []
+    if fm:
+        body += "⚡ <b>SETUP FORMING</b> (confirm hote hi signal aayega):\n"
+        for f in fm:
+            body += (f"• <b>{f['sym']} {f['side']}</b> — baaki: "
+                     f"{', '.join(f['missing'])}\n")
+        body += "\n"
     if alerts:
         body += "🔔 <b>AAPKE COINS KE ALERTS</b>\n" + "\n".join(alerts) + "\n\n"
     mu = res.get("movers_up") or []

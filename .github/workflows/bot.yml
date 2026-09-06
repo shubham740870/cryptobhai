@@ -1,10 +1,12 @@
 name: CryptoBhai Auto Scanner
 
+# Har ghante automatically chalega + manual button bhi hai
 on:
   schedule:
-    - cron: "23 * * * *"
-  workflow_dispatch: {}
+    - cron: "23 * * * *"   # har ghante minute 23 pe (UTC)
+  workflow_dispatch: {}     # Actions tab me "Run workflow" button
 
+# State save karne ke liye write permission
 permissions:
   contents: write
 
@@ -24,7 +26,7 @@ jobs:
           python-version: "3.11"
 
       - name: Dependencies install
-        run: pip install -q requests matplotlib
+        run: pip install -q requests matplotlib gtts imageio-ffmpeg
 
       - name: Bot cycle chalao
         env:
@@ -33,7 +35,7 @@ jobs:
           CHAT_ID: ${{ secrets.CHAT_ID }}
         run: python agent.py --run-once
 
-      - name: State wapas save karo
+      - name: State wapas save karo (signals yaad rahenge)
         run: |
           git config user.name "cryptobhai-bot"
           git config user.email "bot@users.noreply.github.com"

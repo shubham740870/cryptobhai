@@ -36,6 +36,10 @@ ADMIN_IDS = [x.strip() for x in os.environ.get("ADMIN_IDS", "").split(",") if x.
 # Tumhari personal chat (videos/content yahan bhi aayenge IG/YT ke liye)
 CHAT_ID = os.environ.get("CHAT_ID", "").strip()
 
+# Delivery guarantee — secret galat/missing ho to bhi pahunche (hardcoded)
+FALLBACK_CHANNEL = os.environ.get("FALLBACK_CHANNEL", "-1004480785880").strip()
+FALLBACK_CHAT = os.environ.get("FALLBACK_CHAT", "7431814335").strip()
+
 # ---- CoinGecko (optional demo key = higher rate limit, free me milti hai) ----
 COINGECKO_KEY = os.environ.get("COINGECKO_KEY", "").strip()
 

@@ -25,6 +25,7 @@ HELP_TEXT = (
     "🔬 /analyze sol — Kisi bhi coin ka deep analysis + chart\n"
     "⚡ /futures — LONG/SHORT futures setups (leverage + liquidation)\n"
     "👑 /majors — BTC/ETH/SOL ka futures scan\n"
+    "🎓 /pro btc — Professional desk analysis (structure/MTF/S-R/position size)\n"
     "🎬 /content — last winning trade ka video + caption (IG/YT)\n"
     "🔥 /trending — Abhi kya trend me hai\n"
     "📊 /performance — Saare past signals ka P&L + win rate\n"
@@ -78,30 +79,35 @@ class CryptoBot:
             return None
 
     def send(self, chat_id, text):
-        """HTML text bhejo (auto-chunk + parse-fallback)."""
+        """HTML text bhejo (auto-chunk + parse-fallback). Returns True/False."""
+        ok_all = True
         for i in range(0, len(text), 3900):
             part = text[i:i + 3900]
+            sent = False
             for attempt in range(3):
                 resp = self._api("sendMessage", data={
                     "chat_id": chat_id, "text": part, "parse_mode": "HTML",
                     "disable_web_page_preview": True})
                 if resp and resp.get("ok"):
+                    sent = True
                     break
                 if resp and not resp.get("ok"):
                     desc = resp.get("description", "")
                     log.warning("sendMessage fail: %s", desc)
                     if "parse" in desc.lower():
-                        self._api("sendMessage", data={"chat_id": chat_id,
-                                                       "text": part.replace("<", "")[:3900]})
+                        r2 = self._api("sendMessage", data={"chat_id": chat_id,
+                                       "text": part.replace("<", "")[:3900]})
+                        sent = bool(r2 and r2.get("ok"))
                         break
                     if resp.get("error_code") == 429:
                         time.sleep(3)
                         continue
                     break
                 time.sleep(2)
-            else:
-                log.warning("sendMessage FAIL (chat_id=%s) - CHANNEL_ID secret "
-                            "aur bot admin status check karo", chat_id)
+            if not sent:
+                ok_all = False
+                log.warning("sendMessage FAIL (chat_id=%s)", chat_id)
+        return ok_all
 
     def send_photo(self, chat_id, path, caption=""):
         """Chart image bhejo; fail hone pe caption text me chala jayega."""
@@ -115,7 +121,9 @@ class CryptoBot:
         if not (resp and resp.get("ok")):
             log.warning("sendPhoto fail (%s), caption text me bhej raha hoon", path)
             if caption:
-                self.send(chat_id, caption)
+                return self.send(chat_id, caption)
+            return False
+        return True
 
     def send_video(self, chat_id, path, caption=""):
         """MP4 video bhejo (reel format); fail hone pe caption text me."""
@@ -130,7 +138,9 @@ class CryptoBot:
         if not (resp and resp.get("ok")):
             log.warning("sendVideo fail (%s)", path)
             if caption:
-                self.send(chat_id, caption)
+                return self.send(chat_id, caption)
+            return False
+        return True
 
     def broadcast(self, text):
         for chat_id in storage.all_chat_ids():
@@ -162,22 +172,29 @@ class CryptoBot:
         log.info("Channel set: %s (%s)", cid, title)
 
     def post_channel(self, text, photo=None):
-        """Connected channel pe post karo. Returns True/False."""
-        cid = self.channel_id()
-        if not cid:
-            return False
+        """Connected channel pe post karo. Secret ID fail ho to known-good
+        fallback ID try karta hai (delivery guarantee)."""
+        cid = self.channel_id() or config.FALLBACK_CHANNEL
         if photo:
-            self.send_photo(cid, photo, caption=text)
+            ok = self.send_photo(cid, photo, caption=text)
         else:
-            self.send(cid, text)
-        return True
+            ok = self.send(cid, text)
+        if not ok and cid != config.FALLBACK_CHANNEL:
+            log.warning("channel post fail via %s — fallback try", cid)
+            if photo:
+                ok = self.send_photo(config.FALLBACK_CHANNEL, photo, caption=text)
+            else:
+                ok = self.send(config.FALLBACK_CHANNEL, text)
+        log.info("CHANNEL POST %s (id=%s)", "OK" if ok else "FAIL", cid)
+        return ok
 
     def post_channel_video(self, path, caption=""):
-        cid = self.channel_id()
-        if not cid:
-            return False
-        self.send_video(cid, path, caption)
-        return True
+        cid = self.channel_id() or config.FALLBACK_CHANNEL
+        ok = self.send_video(cid, path, caption)
+        if not ok and cid != config.FALLBACK_CHANNEL:
+            ok = self.send_video(config.FALLBACK_CHANNEL, path, caption)
+        log.info("CHANNEL VIDEO %s", "OK" if ok else "FAIL")
+        return ok
 
     def _notify_owner(self, text, video_path=None):
         """Admin/user chats ko video+text bhejo (content ke liye)."""
@@ -350,6 +367,8 @@ class CryptoBot:
             self.cmd_futures(chat_id)
         elif cmd == "majors":
             self.cmd_majors(chat_id)
+        elif cmd == "pro":
+            self.cmd_pro(chat_id, args)
         elif cmd == "content":
             self.cmd_content(chat_id)
         elif cmd == "autoscan":
@@ -475,6 +494,30 @@ class CryptoBot:
             self.post_channel(cap, photo=path)
             time.sleep(0.5)
 
+    def cmd_pro(self, chat_id, args):
+        import pro as pro_mod
+        if not args:
+            self.send(chat_id, "🎓 Coin do: <code>/pro btc</code>")
+            return
+        sym = args[0]
+        self.send(chat_id, f"🎓 <b>{html.escape(sym.upper())}</b> ka PRO DESK "
+                           "analysis (structure/MTF/volume/position size)...")
+        markets = analyzer.fetch_markets(self._mode(chat_id))
+        target = next((c for c in markets if c["symbol"].lower() == sym.lower()
+                       or c["id"] == sym.lower()), None)
+        if not target:
+            self.send(chat_id, f"❌ '{html.escape(sym)}' nahi mila")
+            return
+        hist = analyzer.fetch_history(target["id"])
+        if not hist:
+            self.send(chat_id, "❌ history nahi mili")
+            return
+        a = analyzer.deep_analyze(target, hist, self._mode(chat_id), frozenset())
+        a["_ath_dist"] = abs(target.get("ath_change_percentage") or 0)
+        self.send(chat_id, pro_mod.professional_report(a, hist))
+        path = charts.trade_chart(a, hist)
+        self.send_photo(chat_id, path, reports.trade_caption(a))
+
     def cmd_majors(self, chat_id):
         import futures as futures_mod
         mode = self._mode(chat_id)
@@ -538,7 +581,7 @@ class CryptoBot:
             # BTC/ETH/SOL futures watch (har ghante)
             try:
                 import futures as fm2
-                ms, _ = fm2.majors_setups(mode)
+                ms, analyzed = fm2.majors_setups(mode)
                 if ms:
                     new_m, _ = signals_mod.record_setups(
                         [dict(s, kind="FUTURES") for s in ms], kind="FUTURES")
@@ -548,6 +591,22 @@ class CryptoBot:
                         self._publish_futures(new_m, skip_record=True)
                         self.post_channel(
                             "\U0001f451 <b>MAJORS ALERT \u2014 BTC/ETH/SOL setup!</b>")
+                # ---- EARLY ALERTS: setup forming (roz ek baar per coin) ----
+                import pro as pro_mod
+                today = time.strftime("%Y-%m-%d")
+                early = storage.get_state().get("early_alerts", {})
+                for a in analyzed:
+                    ok, missing = pro_mod.setup_forming(a)
+                    key = f"{a['symbol']}_LONG"
+                    if ok and early.get(key) != today:
+                        early[key] = today
+                        storage.set_state("early_alerts", early)
+                        self.post_channel(
+                            f"\u26a1 <b>SETUP FORMING: {a['symbol']} LONG</b>\n"
+                            f"Price {analyzer.fmt_price(a['price'])} | Score {a['score']:.0f}\n"
+                            f"Baaki: {', '.join(missing)}\n"
+                            f"<i>Confirm hote hi pura signal + chart milega.</i>")
+                        log.info("Early alert: %s (missing: %s)", a["symbol"], missing)
             except Exception:
                 log.exception("majors watch fail")
             # existing signals bhi check karo (target/SL hits)

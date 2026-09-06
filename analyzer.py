@@ -426,9 +426,11 @@ def deep_analyze(coin, hist, mode, trending_syms=frozenset()):
     if not reasons:
         reasons.append("Mixed signals — clear setup ka wait karo")
 
+    ath_dist_v = abs(coin.get("ath_change_percentage") or 0) or None
     return {
         "id": coin.get("id"), "symbol": sym, "name": name,
         "price": px, "mcap": mcap, "rank": coin.get("market_cap_rank"),
+        "ath_dist": ath_dist_v,
         "ch7": ch7, "ch30": ch30, "ch200": ch200,
         "rsi": rsi_now, "sma20": sma20_now, "sma50": sma50_now,
         "macd_hist": hist_now, "atr_pct": atr_pct * 100,
@@ -566,11 +568,24 @@ def run_weekly(mode="aggressive", progress_cb=None):
                    or "parabolic" in a["tags"]][:4]
     sells = [a for a in analyzed if a["verdict"] in ("SELL", "AVOID / EXIT")][:4]
 
+    # investment corner (long-term DCA view)
+    invest = []
+    try:
+        import pro as pro_mod
+        for a in analyzed:
+            a["_ath_dist"] = a.get("ath_dist")
+        scored = [(pro_mod.investment_score(a), a) for a in analyzed]
+        scored.sort(key=lambda x: x[0]["score"], reverse=True)
+        invest = [(s, a) for s, a in scored[:3]]
+    except Exception as e:
+        log.warning("invest corner fail: %s", e)
+
     return {"mode": mode, "generated": time.strftime("%d %b %Y, %H:%M IST"),
             "fng": fng, "btc": btc, "eth": eth,
             "universe_count": len(universe),
             "buys": buys, "holds": holds, "book_profit": book_profit,
-            "sells": sells, "trending": trending[:8], "analyzed": analyzed}
+            "sells": sells, "trending": trending[:8], "analyzed": analyzed,
+            "invest": invest}
 
 
 def run_single(symbol_or_id, mode="aggressive"):
@@ -680,11 +695,42 @@ def run_daily(mode="aggressive"):
                 if ch24 >= 10:
                     alerts.append(f"🚀 <b>{sym}</b> aaj {ch24:.1f}% ud raha hai — trailing SL lagao")
 
+    # ---- PRO DESK brief (BTC/ETH/SOL) + setup-forming early alerts ----
+    pro_brief, forming = [], []
+    try:
+        import pro as pro_mod
+        for cid, sym in (("bitcoin", "BTC"), ("ethereum", "ETH"), ("solana", "SOL")):
+            coin = next((c for c in markets if c.get("id") == cid), None)
+            if not coin:
+                continue
+            hist = fetch_history(cid)
+            if not hist:
+                continue
+            a = deep_analyze(coin, hist, mode, frozenset())
+            a["_ath_dist"] = abs(coin.get("ath_change_percentage") or 0)
+            conf = pro_mod.confluence(
+                dict(a, _highs=hl[0], _lows=hl[1]),
+                hist) if (hl := pro_mod._hl_from_hist(hist)) else None
+            sup, res = pro_mod.charts._sr_zones(hl[0], hl[1], a["price"])
+            forming_ok, missing = pro_mod.setup_forming(a)
+            pro_brief.append({"sym": sym, "bias": conf["bias"],
+                              "conviction": conf["conviction"],
+                              "pct": conf["pct"], "structure": conf["structure"],
+                              "sup": sup[:1], "res": res[:1], "price": a["price"],
+                              "t1": a["t1"], "t2": a["t2"], "sl": a["sl"],
+                              "entry": a["entry"]})
+            if forming_ok:
+                forming.append({"sym": sym, "missing": missing, "side": "LONG",
+                                "price": a["price"], "score": a["score"]})
+    except Exception as e:
+        log.warning("pro brief fail: %s", e)
+
     return {"mode": mode, "generated": time.strftime("%d %b %Y, %H:%M IST"),
             "fng": fng, "btc": btc, "eth": eth,
             "movers_up": movers_up, "movers_dn": movers_dn, "wk_up": wk_up,
             "holdings": holdings, "alerts": alerts[:8],
-            "trending": trending[:6], "watch_syms": watch_syms}
+            "trending": trending[:6], "watch_syms": watch_syms,
+            "pro_brief": pro_brief, "forming": forming}
 
 
 def _rsi_quick(prices, period=14):
