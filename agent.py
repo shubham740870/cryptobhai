@@ -137,6 +137,17 @@ def run_once():
     """Ek analysis cycle: signal checks + autoscan + daily/weekly agar waqt hai.
     Telegram polling NAHI karta (commands nahi) — sirf khud post karta hai."""
     import os
+    # video engine ke deps ensure karo (GitHub Actions pe workflow file
+    # update na ho paye to bhi videos kaam karein)
+    try:
+        import gtts  # noqa: F401
+    except ImportError:
+        try:
+            import subprocess as _sp
+            _sp.run([sys.executable, "-m", "pip", "install", "--quiet",
+                     "gtts", "imageio-ffmpeg"], timeout=180)
+        except Exception:
+            pass
     import analyzer
     import reports
     import signals as signals_mod
