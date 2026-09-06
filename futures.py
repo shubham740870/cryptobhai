@@ -186,3 +186,32 @@ def quick_scan(mode="aggressive"):
     note = ", ".join(f"{c['symbol']} {(c.get('price_change_percentage_1h_in_currency') or 0):+.1f}%"
                      for _, c in movers[:3])
     return setups, note
+
+# ---------------------------------------------------------------------------
+# Majors watch — BTC/ETH/SOL ka futures scan (har ghante)
+# ---------------------------------------------------------------------------
+
+MAJOR_IDS = {"bitcoin": "BTC", "ethereum": "ETH", "solana": "SOL"}
+
+
+def majors_setups(mode="aggressive"):
+    """BTC/ETH/SOL ka deep analysis -> LONG/SHORT setups (jab bhi bane).
+
+    Returns (setups, analyzed_list)
+    """
+    markets = analyzer.fetch_markets(mode)
+    setups, analyzed_all = [], []
+    for cid, sym in MAJOR_IDS.items():
+        coin = next((c for c in markets if c.get("id") == cid), None)
+        if not coin:
+            continue
+        hist = analyzer.fetch_history(cid)
+        if not hist:
+            continue
+        try:
+            a = analyzer.deep_analyze(coin, hist, mode, frozenset())
+            analyzed_all.append(a)
+        except Exception:
+            continue
+    longs, shorts = evaluate_setups(analyzed_all)
+    return longs + shorts, analyzed_all

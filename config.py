@@ -33,6 +33,8 @@ TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "").strip()
 CHANNEL_ID = os.environ.get("CHANNEL_ID", "").strip()
 # Comma-separated admin Telegram user IDs (invite links banane ke liye)
 ADMIN_IDS = [x.strip() for x in os.environ.get("ADMIN_IDS", "").split(",") if x.strip()]
+# Tumhari personal chat (videos/content yahan bhi aayenge IG/YT ke liye)
+CHAT_ID = os.environ.get("CHAT_ID", "").strip()
 
 # ---- CoinGecko (optional demo key = higher rate limit, free me milti hai) ----
 COINGECKO_KEY = os.environ.get("COINGECKO_KEY", "").strip()

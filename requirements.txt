@@ -1,2 +1,4 @@
 requests>=2.28.0
 matplotlib>=3.5
+gtts>=2.3.0
+imageio-ffmpeg>=0.4.8

@@ -10,6 +10,8 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 
+from matplotlib.patches import Rectangle  # noqa: E402
+
 from indicators import resample_daily, sma  # noqa: E402
 
 # ---- dark theme ----
@@ -218,6 +220,161 @@ def portfolio_chart(holdings, path=None):
              fontsize=7.5, ha="right")
     if path is None:
         path = os.path.join(CHARTS_DIR, "portfolio.png")
+    fig.savefig(path, facecolor=BG, bbox_inches="tight")
+    plt.close(fig)
+    return path
+
+def _sr_zones(highs, lows, price, lookback=60):
+    """Swing highs/lows se support/resistance zones (clustered)."""
+    hs, ls = highs[-lookback:], lows[-lookback:]
+    w = 2
+    res_pts, sup_pts = [], []
+    for i in range(w, len(hs) - w):
+        if hs[i] >= max(hs[i - w:i + w + 1]):
+            res_pts.append(hs[i])
+        if ls[i] <= min(ls[i - w:i + w + 1]):
+            sup_pts.append(ls[i])
+
+    def cluster(pts, tol=0.012):
+        if not pts:
+            return []
+        pts = sorted(pts)
+        groups, cur = [], [pts[0]]
+        for p in pts[1:]:
+            if p <= cur[-1] * (1 + tol):
+                cur.append(p)
+            else:
+                groups.append(cur)
+                cur = [p]
+        groups.append(cur)
+        return [sum(g) / len(g) for g in groups]
+
+    res = [z for z in cluster(res_pts) if z > price * 1.003]
+    sup = [z for z in cluster(sup_pts) if z < price * 0.997]
+    res.sort(key=lambda z: abs(z - price))
+    sup.sort(key=lambda z: abs(z - price))
+    return sup[:2], res[:2]
+
+
+def candle_chart(a, hist, path=None):
+    """TradingView-style candle chart: S/R zones + entry/TP/SL + projection."""
+    prices = hist.get("prices") or []
+    dates, opens, highs, lows, closes = resample_daily(prices)
+    N = 70
+    o, h, l, c = opens[-N:], highs[-N:], lows[-N:], closes[-N:]
+    dd = [d[5:] for d in dates[-N:]]
+    n = len(c)
+    if n < 10:
+        return None
+    side = a.get("side", "LONG")
+    price, t1, t2, sl = a["price"], a["t1"], a["t2"], a["sl"]
+    lo_e, hi_e = a["entry"]
+    sup, res = _sr_zones(h, l, price)
+
+    fig = plt.figure(figsize=(12.8, 7.6), dpi=105)
+    ax = fig.add_axes([0.055, 0.09, 0.63, 0.82])
+    _style_ax(ax)
+
+    # candles
+    span = max(c) - min(c)
+    for i in range(n):
+        col = GREEN if c[i] >= o[i] else RED
+        ax.plot([i, i], [l[i], h[i]], color=col, lw=1.1, zorder=4)
+        b_lo, b_hi = min(o[i], c[i]), max(o[i], c[i])
+        bh = max(b_hi - b_lo, span * 0.001)
+        ax.add_patch(Rectangle((i - 0.33, b_lo), 0.66, bh,
+                               facecolor=col, edgecolor=col, zorder=5))
+
+    # volume bars (background, chhote)
+    vols = hist.get("total_volumes") or []
+    vol_by_day = {}
+    for ts, v in vols:
+        vol_by_day[ts] = v  # last hourly point of each window roughly
+    if vols:
+        vv = [v for _, v in vols[-n * 24:]]
+        step = max(1, len(vv) // n)
+        dv = [sum(vv[j:j + step]) for j in range(0, len(vv), step)][:n]
+        if len(dv) < n:
+            dv = dv + [dv[-1]] * (n - len(dv))
+        ax2 = ax.twinx()
+        ax2.bar(range(n), dv, color=[GREEN if c[i] >= o[i] else RED for i in range(n)],
+                alpha=0.18, width=0.66, zorder=2)
+        ax2.set_ylim(0, max(dv) * 5 if dv else 1)
+        ax2.axis("off")
+
+    # S/R zones
+    all_lvls = [min(l), max(h), sl, t2, lo_e, hi_e]
+    for z in sup:
+        all_lvls += [z * 0.99, z * 1.01]
+    for z in res:
+        all_lvls += [z * 0.99, z * 1.01]
+    ymin, ymax = min(all_lvls) * 0.985, max(all_lvls) * 1.015
+    span = ymax - ymin
+
+    for z in sup:
+        ax.axhspan(z * 0.99, z * 1.01, color=BLUE, alpha=0.13, zorder=1)
+    for z in res:
+        ax.axhspan(z * 0.99, z * 1.01, color=ORANGE, alpha=0.15, zorder=1)
+
+    # trade levels
+    ax.axhspan(min(lo_e, hi_e), max(lo_e, hi_e), color=GREEN, alpha=0.18, zorder=2)
+    ax.axhline(t1, color=GREEN, ls="--", lw=1.3, zorder=2)
+    ax.axhline(t2, color=GREEN, ls="--", lw=1.3, alpha=0.7, zorder=2)
+    ax.axhline(sl, color=RED, ls="--", lw=1.4, zorder=2)
+    ax.axhline(price, color=BLUE, ls=":", lw=1.3, zorder=3)
+
+    xlab = n + n * 0.012
+    fs = 9
+    def lbl(y, s, col, fw="bold"):
+        ax.text(xlab, y, s, color=col, fontsize=fs, va="center", fontweight=fw)
+
+    # S/R labels (band centers, chhote)
+    for z in sup:
+        lbl(z, f"  SUPPORT {_price_fmt(z)}", BLUE, "bold")
+    for z in res:
+        lbl(z, f"  RESIST {_price_fmt(z)}", ORANGE, "bold")
+    lbl(t2, f"  TARGET 2  {_price_fmt(t2)} ({(t2/price-1)*100:+.0f}%)", GREEN)
+    lbl(t1, f"  TARGET 1  {_price_fmt(t1)} ({(t1/price-1)*100:+.0f}%)", GREEN)
+    lbl((lo_e + hi_e) / 2, f"  ENTRY  {_price_fmt(lo_e)}-{_price_fmt(hi_e)}", "#7ee787")
+    lbl(sl, f"  STOP-LOSS  {_price_fmt(sl)} ({(sl/price-1)*100:+.0f}%)", RED)
+    lbl(price, f"  NOW  {_price_fmt(price)}", BLUE)
+    # NOW label overlap avoid (entry ke paas ho to thoda neeche)
+    if abs(price - (lo_e + hi_e) / 2) < span * 0.03:
+        ax.texts[-1].set_position((xlab, price - span * 0.035))
+
+    # projection arrow — "kaha tak ja sakta hai"
+    arc = -0.22 if side == "LONG" else 0.22
+    arrow_end_y = t2 + (span * 0.045 if side == "LONG" else -span * 0.045)
+    ax.annotate("", xy=(n + n * 0.09, arrow_end_y), xytext=(n - 1, price),
+                arrowprops=dict(arrowstyle="->", color=GREEN if side == "LONG" else RED,
+                                lw=1.8, ls="--", connectionstyle=f"arc3,rad={arc}"),
+                zorder=6)
+    ax.text(n + n * 0.09, arrow_end_y, f"  EXPECTED MOVE {(t2/price-1)*100:+.0f}%",
+            color=GREEN if side == "LONG" else RED, fontsize=fs,
+            va="center", fontweight="bold", style="italic")
+
+    ax.set_ylim(ymin, ymax)
+    ax.set_xlim(0, n * 1.30)
+    step = max(1, n // 8)
+    ax.set_xticks(range(0, n, step))
+    ax.set_xticklabels([dd[i] for i in range(0, n, step)], fontsize=8)
+
+    lev = f" {a['lev']}x" if a.get("lev") else ""
+    mode = "FUTURES " if a.get("kind") == "FUTURES" or a.get("lev") else ""
+    ax.set_title(f"{a['name']} ({a['symbol']}/USDT) · 1D   |   "
+                 f"{mode}{side}{lev}  ·  Score {a['score']:.0f}/100", pad=14)
+    ax.set_ylabel("Price (USDT)", color=GRAY, fontsize=9)
+    leg = ax.legend(handles=[plt.Line2D([], [], color=FG, lw=2, label="Price"),
+                             plt.Line2D([], [], color=ORANGE, lw=2, label="SMA20/Resistance"),
+                             plt.Line2D([], [], color=BLUE, lw=2, label="Support")],
+                    loc="upper left", fontsize=8, facecolor=PANEL, edgecolor=GRID)
+    for t in leg.get_texts():
+        t.set_color(FG)
+    fig.text(0.99, 0.012, "CryptoBhai AI · educational only, not financial advice",
+             color=GRAY, fontsize=8, ha="right")
+
+    if path is None:
+        path = os.path.join(CHARTS_DIR, f"candle_{a['symbol']}_{side}.png")
     fig.savefig(path, facecolor=BG, bbox_inches="tight")
     plt.close(fig)
     return path

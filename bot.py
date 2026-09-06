@@ -24,6 +24,8 @@ HELP_TEXT = (
     "☀️ /daily — Aaj ka update: movers, alerts, market mood\n"
     "🔬 /analyze sol — Kisi bhi coin ka deep analysis + chart\n"
     "⚡ /futures — LONG/SHORT futures setups (leverage + liquidation)\n"
+    "👑 /majors — BTC/ETH/SOL ka futures scan\n"
+    "🎬 /content — last winning trade ka video + caption (IG/YT)\n"
     "🔥 /trending — Abhi kya trend me hai\n"
     "📊 /performance — Saare past signals ka P&L + win rate\n"
     "🤖 /autoscan — 24/7 auto-scanner on/off (har ghante naye setups)\n\n"
@@ -115,6 +117,21 @@ class CryptoBot:
             if caption:
                 self.send(chat_id, caption)
 
+    def send_video(self, chat_id, path, caption=""):
+        """MP4 video bhejo (reel format); fail hone pe caption text me."""
+        try:
+            with open(path, "rb") as f:
+                resp = self._api("sendVideo", data={
+                    "chat_id": chat_id, "caption": caption[:1024],
+                    "parse_mode": "HTML", "supports_streaming": True},
+                    files={"video": f})
+        except (FileNotFoundError, OSError):
+            resp = None
+        if not (resp and resp.get("ok")):
+            log.warning("sendVideo fail (%s)", path)
+            if caption:
+                self.send(chat_id, caption)
+
     def broadcast(self, text):
         for chat_id in storage.all_chat_ids():
             self.send(chat_id, text)
@@ -154,6 +171,24 @@ class CryptoBot:
         else:
             self.send(cid, text)
         return True
+
+    def post_channel_video(self, path, caption=""):
+        cid = self.channel_id()
+        if not cid:
+            return False
+        self.send_video(cid, path, caption)
+        return True
+
+    def _notify_owner(self, text, video_path=None):
+        """Admin/user chats ko video+text bhejo (content ke liye)."""
+        targets = set(storage.get_state().get("admins", [])) | set(config.ADMIN_IDS)
+        if config.CHAT_ID:
+            targets.add(str(config.CHAT_ID))
+        for t in targets:
+            if video_path:
+                self.send_video(t, video_path, text)
+            else:
+                self.send(t, text)
 
     def test_channel(self, chat_id):
         if not self.channel_id():
@@ -213,6 +248,26 @@ class CryptoBot:
             for admin in storage.get_state().get("admins", []):
                 self.send(admin, text)
             time.sleep(0.5)
+
+            # ---- WIN (Target 2) -> AI result video ----
+            if u["event"] == "CLOSED_TP2":
+                try:
+                    import video as video_mod
+                    vid, cap = video_mod.make_result_video(s)
+                    if vid:
+                        self.post_channel_video(vid, "🎬 " + cap)
+                        self._notify_owner(
+                            "🎬 <b>NAYA CONTENT READY!</b>\n"
+                            "Ye video Instagram Reels / YouTube Shorts pe post "
+                            "kar do (caption niche).\n\n"
+                            "📝 <b>Caption:</b>\n" + cap,
+                            video_path=vid)
+                        log.info("Result video ready: %s", vid)
+                    else:
+                        self._notify_owner(text)
+                except Exception:
+                    log.exception("video generation fail")
+                    self._notify_owner(text)
 
     # ---------------- Analysis runners ----------------
     def get_weekly(self, mode, chat_id):
@@ -293,6 +348,10 @@ class CryptoBot:
             self.cmd_analyze(chat_id, args)
         elif cmd == "futures":
             self.cmd_futures(chat_id)
+        elif cmd == "majors":
+            self.cmd_majors(chat_id)
+        elif cmd == "content":
+            self.cmd_content(chat_id)
         elif cmd == "autoscan":
             self.cmd_autoscan(chat_id)
         elif cmd == "trending":
@@ -385,28 +444,80 @@ class CryptoBot:
         self.send(chat_id, reports.futures_report(longs, shorts))
         self._publish_futures(longs + shorts, chat_id)
 
-    def _publish_futures(self, setups, also_chat=None):
+    def _publish_futures(self, setups, also_chat=None, skip_record=False):
         import futures as futures_mod
         if not setups:
             return
-        new_sigs, _ = signals_mod.record_setups(
-            [dict(s, kind="FUTURES") for s in setups], kind="FUTURES")
-        new_syms = {(s["sym"], s["side"]) for s in new_sigs}
+        if skip_record:
+            new_syms = {(s["symbol"], s["side"]) for s in setups}
+        else:
+            new_sigs, _ = signals_mod.record_setups(
+                [dict(s, kind="FUTURES") for s in setups], kind="FUTURES")
+            new_syms = {(s["sym"], s["side"]) for s in new_sigs}
         cards = setups[:4]
-        if also_chat and new_sigs:
+        if also_chat and not skip_record:
             cards = [a for a in setups
                      if (a["symbol"], a["side"]) in new_syms] or cards
         for a in cards:
             hist = analyzer.fetch_history(a["id"])
             if not hist:
                 continue
-            path = charts.trade_chart(a, hist)
+            # futures = TradingView-style candle chart (S/R zones ke saath)
+            try:
+                path = charts.candle_chart(dict(a, kind="FUTURES"), hist)
+            except Exception:
+                log.exception("candle_chart fail, line chart pe fallback")
+                path = charts.trade_chart(a, hist)
             cap = (reports.trade_caption(dict(a, kind="FUTURES"))
                    + futures_mod.funding_note(a["symbol"]))
             if also_chat:
                 self.send_photo(also_chat, path, cap)
             self.post_channel(cap, photo=path)
             time.sleep(0.5)
+
+    def cmd_majors(self, chat_id):
+        import futures as futures_mod
+        mode = self._mode(chat_id)
+        self.send(chat_id, "👑 <b>BTC / ETH / SOL futures scan</b>...")
+        setups, analyzed = futures_mod.majors_setups(mode)
+        self.send(chat_id, reports.futures_report(
+            [s for s in setups if s["side"] == "LONG"],
+            [s for s in setups if s["side"] == "SHORT"]))
+        if setups:
+            new_sigs, _ = signals_mod.record_setups(
+                [dict(s, kind="FUTURES") for s in setups], kind="FUTURES")
+            if new_sigs:
+                pub = [a for a in setups
+                       if (a["symbol"], a["side"]) in
+                       {(x["sym"], x["side"]) for x in new_sigs}]
+                self._publish_futures(pub, also_chat=chat_id, skip_record=True)
+            else:
+                self.send(chat_id, "ℹ️ Ye setups already open/post ho chuke hain")
+        else:
+            self.send(chat_id, "📊 BTC/ETH/SOL me abhi koi clean setup nahi — "
+                               "scanner har ghante check karta rahega ⏳")
+
+    def cmd_content(self, chat_id):
+        """Last winning trade ka video dobara banao (IG/YT content)."""
+        import video as video_mod
+        sigs = signals_mod.performance_summary()[0]
+        wins = [s for s in sigs if s["status"] == "CLOSED_TP2"]
+        if not wins:
+            self.send(chat_id, "🎬 Abhi tak koi successful trade record nahi hua. "
+                               "Jaise hi koi signal Target 2 hit karega, video "
+                               "khud ban jayega!")
+            return
+        s = wins[0]
+        self.send(chat_id, f"🎬 <b>{s['sym']}</b> ke winning trade ka video ban "
+                           "raha hai (1-2 min)...")
+        vid, cap = video_mod.make_result_video(s)
+        if vid:
+            self.send_video(chat_id, vid, "🎬 <b>CONTENT READY!</b>\n"
+                            "Ye video Instagram Reels / YouTube Shorts pe post karo.\n\n"
+                            "📝 <b>Caption (copy karo):</b>\n" + cap)
+        else:
+            self.send(chat_id, "😕 Video generate nahi ho paya (ffmpeg missing). "
+                               "GitHub Actions pe ye automatic kaam karega.")
 
     def autoscan_hourly(self):
         """24/7 hourly scanner: movers -> setups -> channel post."""
@@ -424,6 +535,21 @@ class CryptoBot:
                     self.post_channel(
                         "\U0001f916 <b>AUTO-SCANNER: NAYA SETUP MILA!</b>\n"
                         f"<i>Movement: {html.escape(note)}</i>")
+            # BTC/ETH/SOL futures watch (har ghante)
+            try:
+                import futures as fm2
+                ms, _ = fm2.majors_setups(mode)
+                if ms:
+                    new_m, _ = signals_mod.record_setups(
+                        [dict(s, kind="FUTURES") for s in ms], kind="FUTURES")
+                    if new_m:
+                        log.info("AutoScan: MAJORS setups %s",
+                                 [s["symbol"] for s in new_m])
+                        self._publish_futures(new_m, skip_record=True)
+                        self.post_channel(
+                            "\U0001f451 <b>MAJORS ALERT \u2014 BTC/ETH/SOL setup!</b>")
+            except Exception:
+                log.exception("majors watch fail")
             # existing signals bhi check karo (target/SL hits)
             updates, _ = signals_mod.check_signals(mode)
             if updates:
