@@ -745,3 +745,24 @@ def _rsi_quick(prices, period=14):
     if avg_l == 0:
         return 100.0
     return 100 - 100 / (1 + avg_g / avg_l)
+
+def quick_scan_5min(mode="aggressive"):
+    """5-min quick scan: BTC/ETH/SOL price + 1h momentum check (fast).
+
+    Returns dict: {sym: {price, ch1h, ch24h, rsi_quick}} — har coin ke liye.
+    """
+    markets = fetch_markets(mode)
+    out = {}
+    for cid, sym in (("bitcoin", "BTC"), ("ethereum", "ETH"), ("solana", "SOL")):
+        c = next((x for x in markets if x.get("id") == cid), None)
+        if not c:
+            continue
+        spark = (c.get("sparkline_in_7d") or {}).get("price") or []
+        rsi_v = _rsi_quick(spark[-48:]) if len(spark) >= 48 else None
+        out[sym] = {
+            "price": c.get("current_price"),
+            "ch1h": c.get("price_change_percentage_1h_in_currency") or 0,
+            "ch24h": c.get("price_change_percentage_24h_in_currency") or 0,
+            "rsi_1h": rsi_v,
+        }
+    return out

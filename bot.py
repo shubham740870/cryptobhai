@@ -27,6 +27,7 @@ HELP_TEXT = (
     "👑 /majors — BTC/ETH/SOL ka futures scan\n"
     "🎓 /pro btc — Professional desk analysis (structure/MTF/S-R/position size)\n"
     "🎬 /content — last winning trade ka video + caption (IG/YT)\n"
+    "📒 /journal — Google Sheet trading journal ka live P&L\n"
     "🔥 /trending — Abhi kya trend me hai\n"
     "📊 /performance — Saare past signals ka P&L + win rate\n"
     "🤖 /autoscan — 24/7 auto-scanner on/off (har ghante naye setups)\n\n"
@@ -380,6 +381,8 @@ class CryptoBot:
             self.cmd_pro(chat_id, args)
         elif cmd == "content":
             self.cmd_content(chat_id)
+        elif cmd == "journal":
+            self.cmd_journal(chat_id)
         elif cmd == "autoscan":
             self.cmd_autoscan(chat_id)
         elif cmd == "trending":
@@ -570,6 +573,26 @@ class CryptoBot:
         else:
             self.send(chat_id, "😕 Video generate nahi ho paya (ffmpeg missing). "
                                "GitHub Actions pe ye automatic kaam karega.")
+
+    def cmd_journal(self, chat_id):
+        import journal as journal_mod
+        if not config.JOURNAL_SHEET_URL:
+            self.send(chat_id,
+                "📒 <b>TRADING JOURNAL SETUP</b>\n\n"
+                "1. Google Sheet banao in columns ke saath:\n"
+                "<code>Date | Coin | Side | Entry | SL | Target | Qty | Lev | Notes</code>\n"
+                "2. Sheet ko public karo: Share → Anyone with link → Viewer\n"
+                "3. Sheet ka link mujhe do (JOURNAL_SHEET_URL)\n\n"
+                "Uske baad har update me tumhari entries ka live P&L + "
+                "win-rate + target/SL alerts automatic milenge! 📊")
+            return
+        self.send(chat_id, "📒 Journal sheet padh raha hoon...")
+        entries, err = journal_mod.load_entries()
+        if err:
+            self.send(chat_id, f"❌ {err}")
+            return
+        markets = analyzer.fetch_markets(self._mode(chat_id))
+        self.send(chat_id, journal_mod.journal_report(entries, markets))
 
     def autoscan_hourly(self):
         """24/7 hourly scanner: movers -> setups -> channel post."""

@@ -44,8 +44,10 @@ def record_setups(setups, kind="SPOT"):
             continue
         if now - d["posted"].get(tag, 0) < COOLDOWN.get(kind, 6 * 86400):
             continue
+        last_change = time.strftime("%Y-%m-%d %H:%M", time.gmtime(now - 300))
         sig = {
             "key": f"{tag}_{int(now)}",
+            "last_change": last_change,  # ~last 5-min candle (scanner cadence)
             "sym": a["symbol"], "name": a["name"], "id": a["id"],
             "kind": kind, "side": side, "mode": a.get("mode", "aggressive"),
             "ts": time.strftime("%Y-%m-%d %H:%M IST"), "epoch": now,

@@ -40,6 +40,15 @@ CHAT_ID = os.environ.get("CHAT_ID", "").strip()
 FALLBACK_CHANNEL = os.environ.get("FALLBACK_CHANNEL", "-1004480785880").strip()
 FALLBACK_CHAT = os.environ.get("FALLBACK_CHAT", "7431814335").strip()
 
+# --- 5-min scanner mode ---
+# "fast" = har 5 min quick scan (BTC/ETH/SOL) + har ghante deep scan.
+# GitHub Actions fastest schedule bhi ~5-15 min delay hota hai.
+# VPS/Termux pe exact 5 min milta hai. ("fast" | "hourly")
+SCAN_MODE = os.environ.get("SCAN_MODE", "fast").strip().lower()
+# Google Sheet CSV export URL (Trading Journal) — sheet public honi chahiye
+# File -> Share -> Anyone with link (Viewer). URL me /edit ko /export?format=csv karo
+JOURNAL_SHEET_URL = os.environ.get("JOURNAL_SHEET_URL", "").strip()
+
 # ---- CoinGecko (optional demo key = higher rate limit, free me milti hai) ----
 COINGECKO_KEY = os.environ.get("COINGECKO_KEY", "").strip()
 

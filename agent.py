@@ -130,6 +130,36 @@ class Scheduler(threading.Thread):
 
 
 # ---------------------------------------------------------------------------
+# Fast loop — 5-min scanner (VPS/Termux 24/7 ke liye)
+# ---------------------------------------------------------------------------
+
+def fast_loop():
+    """Har 5 min quick scan + har ghante deep scan + journal check.
+
+    Telegram commands bhi saath me chalte hain (background thread me polling).
+    """
+    from bot import CryptoBot
+
+    if not config.TELEGRAM_TOKEN:
+        print("TELEGRAM_TOKEN missing hai (.env me daalo)")
+        sys.exit(1)
+    bot = CryptoBot(config.TELEGRAM_TOKEN)
+    import threading
+    threading.Thread(target=bot.run, daemon=True).start()
+
+    import time as _t
+    import fast_scan
+    log.info("FAST mode: har 5 min scan + har ghante deep | journal: %s",
+             "ON" if config.JOURNAL_SHEET_URL else "off")
+    while True:
+        try:
+            fast_scan.run_fast_cycle(bot)
+        except Exception:
+            log.exception("fast cycle fail")
+        _t.sleep(300)
+
+
+# ---------------------------------------------------------------------------
 # Run-once mode (GitHub Actions / cron ke liye) — ek cycle chalao aur exit
 # ---------------------------------------------------------------------------
 
@@ -180,6 +210,23 @@ def run_once():
             bot.autoscan_hourly()
         except Exception:
             log.exception("autoscan failed")
+
+    # 2b) Trading journal check (agar sheet set hai)
+    if config.JOURNAL_SHEET_URL:
+        try:
+            import journal as journal_mod
+            entries, err = journal_mod.load_entries()
+            if not err:
+                markets = analyzer.fetch_markets(config.DEFAULT_MODE)
+                rep = journal_mod.journal_report(entries, markets)
+                bot.post_channel(rep)
+                if my_chat:
+                    bot.send(my_chat, rep[:3800])
+                log.info("Journal post ho gaya (%d entries)", len(entries))
+            else:
+                log.info("journal: %s", err)
+        except Exception:
+            log.exception("journal fail")
 
     # 3) Daily update (din me ek baar)
     if now.hour >= config.DAILY_HOUR_IST and state.get("last_daily") != today:
@@ -360,6 +407,8 @@ def main():
     ap.add_argument("--coin", help="--demo analyze ke saath coin symbol")
     ap.add_argument("--run-once", action="store_true",
                     help="ek analysis cycle chalao aur exit (GitHub Actions ke liye)")
+    ap.add_argument("--fast", action="store_true",
+                    help="5-min fast scanner mode (VPS/Termux ke liye 24/7 loop)")
     ap.add_argument("--selftest", action="store_true")
     args = ap.parse_args()
 
@@ -370,6 +419,11 @@ def main():
         logging.basicConfig(level=logging.INFO,
                             format="%(asctime)s %(levelname)s %(name)s: %(message)s")
         run_once()
+        return
+    if args.fast:
+        logging.basicConfig(level=logging.INFO,
+                            format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+        fast_loop()
         return
     if args.demo:
         kind = args.demo[0]
