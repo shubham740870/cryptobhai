@@ -211,18 +211,45 @@ def run_once():
         except Exception:
             log.exception("autoscan failed")
 
-    # 2b) Trading journal check (agar sheet set hai)
+    # 2b) Trading journal check — PRIVATE: sirf personal chat,
+    #     channel pe KABHI nahi (user ki trade history hai)
     if config.JOURNAL_SHEET_URL:
         try:
             import journal as journal_mod
             entries, err = journal_mod.load_entries()
             if not err:
                 markets = analyzer.fetch_markets(config.DEFAULT_MODE)
-                rep = journal_mod.journal_report(entries, markets)
-                bot.post_channel(rep)
-                if my_chat:
-                    bot.send(my_chat, rep[:3800])
-                log.info("Journal post ho gaya (%d entries)", len(entries))
+                # Sheet me live prices push (silent — sheet ke P&L live rehte hain)
+                if journal_mod.sheet_push_prices(entries, markets):
+                    log.info("journal: sheet live prices updated")
+                if entries:
+                    # TP/SL hit -> turant PERSONAL alert (din me 1x per coin+status)
+                    for a in journal_mod.analyze(entries, markets):
+                        if a["status"] in ("TARGET_HIT", "SL_HIT"):
+                            akey = f"jrnl_{a['sym']}_{a['side']}_{a['status']}_{today}"
+                            if state.get(akey) != "1":
+                                emo = "✅" if a["status"] == "TARGET_HIT" else "🛑"
+                                msg = (
+                                    f"{emo} <b>JOURNAL: {a['sym']} {a['side']}</b> — "
+                                    f"{a['status'].replace('_', ' ')}!\n"
+                                    f"Entry {analyzer.fmt_price(a['entry'])} → "
+                                    f"{analyzer.fmt_price(a['price'])}\n"
+                                    f"P&L: <b>{a['pnl_pct']:+.1f}%</b> "
+                                    f"(${a['pnl_usd']:+.2f})")
+                                tgt = my_chat or config.FALLBACK_CHAT
+                                if not bot.send(tgt, msg):
+                                    bot.send(config.FALLBACK_CHAT, msg)
+                                storage.set_state(akey, "1")
+                                log.info("journal alert: %s %s",
+                                         a["sym"], a["status"])
+                    # Full journal report — din me ek baar, sirf personal chat
+                    if my_chat and state.get("last_journal_post") != today:
+                        rep = journal_mod.journal_report(entries, markets)
+                        if not bot.send(my_chat, rep[:3800]):
+                            bot.send(config.FALLBACK_CHAT, rep[:3800])
+                        storage.set_state("last_journal_post", today)
+                        log.info("Journal personal chat pe (%d entries)",
+                                 len(entries))
             else:
                 log.info("journal: %s", err)
         except Exception:

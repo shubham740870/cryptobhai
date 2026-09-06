@@ -48,6 +48,7 @@ SCAN_MODE = os.environ.get("SCAN_MODE", "fast").strip().lower()
 # Google Sheet CSV export URL (Trading Journal) — sheet public honi chahiye
 # File -> Share -> Anyone with link (Viewer). URL me /edit ko /export?format=csv karo
 JOURNAL_SHEET_URL = os.environ.get("JOURNAL_SHEET_URL", "").strip()
+SHEET_WEBAPP_URL = os.environ.get("SHEET_WEBAPP_URL", "").strip()
 
 # ---- CoinGecko (optional demo key = higher rate limit, free me milti hai) ----
 COINGECKO_KEY = os.environ.get("COINGECKO_KEY", "").strip()

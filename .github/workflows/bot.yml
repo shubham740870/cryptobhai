@@ -33,6 +33,8 @@ jobs:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           CHANNEL_ID: ${{ secrets.CHANNEL_ID }}
           CHAT_ID: ${{ secrets.CHAT_ID }}
+          JOURNAL_SHEET_URL: ${{ secrets.JOURNAL_SHEET_URL }}
+          SHEET_WEBAPP_URL: ${{ secrets.SHEET_WEBAPP_URL }}
         run: python agent.py --run-once
 
       - name: State wapas save karo (signals yaad rahenge)

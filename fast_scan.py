@@ -12,6 +12,7 @@ Kya karta hai har 5 min:
 Spam protection: same coin ke liye min 2 ghante ka gap alerts ke beech.
 """
 import logging
+import os
 import time
 
 import analyzer
@@ -96,7 +97,7 @@ def run_fast_cycle(bot):
         except Exception:
             log.exception("deep scan fail")
 
-    # 3) journal check (agar sheet set hai)
+    # 3) journal check (agar sheet set hai) — PRIVATE: personal chat only
     if config.JOURNAL_SHEET_URL:
         try:
             entries, err = journal_mod.load_entries()
@@ -105,17 +106,25 @@ def run_fast_cycle(bot):
                     log.info("journal: %s", err)
             else:
                 markets = analyzer.fetch_markets(mode)
-                # koi target/SL hit hua?
+                # sheet me live prices push (silent)
+                try:
+                    journal_mod.sheet_push_prices(entries, markets)
+                except Exception:
+                    pass
+                # koi target/SL hit hua? -> PERSONAL alert (channel pe nahi)
+                jtgt = os.environ.get("CHAT_ID", "").strip() or config.FALLBACK_CHAT
                 for a in journal_mod.analyze(entries, markets):
                     key = f"JRNL_{a['sym']}_{a['side']}_{a['entry']}"
                     if a["status"] in ("TARGET_HIT", "SL_HIT") and \
                             _should_alert(key, fast_state, min_gap=6 * 3600):
                         emo = "✅" if a["status"] == "TARGET_HIT" else "🛑"
-                        bot.post_channel(
+                        msg = (
                             f"{emo} <b>JOURNAL: {a['sym']} {a['side']}</b> — "
                             f"{a['status'].replace('_', ' ')}!\n"
                             f"Entry {analyzer.fmt_price(a['entry'])} → "
                             f"{analyzer.fmt_price(a['price'])}\n"
                             f"P&L: <b>{a['pnl_pct']:+.1f}%</b> (${a['pnl_usd']:+.2f})")
+                        if not bot.send(jtgt, msg):
+                            bot.send(config.FALLBACK_CHAT, msg)
         except Exception:
             log.exception("journal check fail")

@@ -4,8 +4,9 @@ Kaise kaam karta hai:
 1. Tum ek Google Sheet banate ho (template niche README me)
 2. Sheet ko public share karte ho (Anyone with link = Viewer)
 3. Yahan JOURNAL_SHEET_URL set karte ho (.env ya GitHub secret)
-4. Bot har scan pe sheet padhta hai → tumhari entries ko live price se
-   compare karke journal update channel pe post karta hai
+4. Bot har scan pe sheet padhta hai → live P&L personal chat pe (PRIVATE —
+   channel pe KABHI nahi). SHEET_WEBAPP_URL ho to live prices sheet me
+   push bhi karta hai taaki sheet ke P&L formulas live calc karein.
 
 Tum sheet me sirf apne trades likho (entry/SL/target/notes) —
 bot usko live P&L, R-multiple, win-rate stats me convert kar dega.
@@ -13,6 +14,7 @@ bot usko live P&L, R-multiple, win-rate stats me convert kar dega.
 import csv
 import io
 import re
+from urllib.parse import quote_plus
 
 import requests
 
@@ -24,21 +26,35 @@ _session = requests.Session()
 _session.headers.update({"User-Agent": "CryptoBhai-Agent/1.0"})
 
 
-def _resolve_sheet_url():
-    """Normal Google Sheet URL ko CSV export URL me badlo."""
+def _candidate_urls():
+    """Trade Log tab tak pahunchne ke raste (order me try hote hain).
+
+    1. gviz CSV by tab NAME -> "Trade Log" (sabse robust, gid ki zaroorat nahi)
+    2. export?format=csv&gid=0 -> original tab (buildAll se pehle ka)
+    3. export?format=csv -> first tab (Dashboard ban sakta hai — last resort)
+
+    Note: buildAll ke baad Dashboard index 0 pe aa jata hai, isliye
+    bina-gid export galat tab de deta hai — isliye candidates order me.
+    """
     url = (config.JOURNAL_SHEET_URL or "").strip()
     if not url:
-        return None
+        return []
     if "/export?" in url or url.endswith(".csv"):
-        return url
+        return [url]
     m = re.match(r"https://docs\.google\.com/spreadsheets/d/([\w-]+)", url)
-    if m:
-        return f"https://docs.google.com/spreadsheets/d/{m.group(1)}/export?format=csv"
-    return url  # shayad already csv link
+    if not m:
+        return [url]  # shayad already csv link
+    sid = m.group(1)
+    tab = quote_plus("Trade Log")
+    return [
+        f"https://docs.google.com/spreadsheets/d/{sid}/gviz/tq?tqx=out:csv&sheet={tab}",
+        f"https://docs.google.com/spreadsheets/d/{sid}/export?format=csv&gid=0",
+        f"https://docs.google.com/spreadsheets/d/{sid}/export?format=csv",
+    ]
 
 
 def _fetch_csv(url):
-    """Public Google Sheet CSV fetch karo."""
+    """Public Google Sheet CSV fetch karo (gviz ya export endpoint)."""
     try:
         r = _session.get(url, timeout=20)
         if r.status_code == 200 and r.text.strip():
@@ -48,7 +64,18 @@ def _fetch_csv(url):
     return []
 
 
-# Tumhare sheet ke column headers ( flexibility ke liye multiple naam support)
+def _looks_like_journal(rows):
+    """Pehli row me Coin/Symbol header ho tabhi accept karo.
+
+    Isse gviz error pages / Dashboard CSV ko journal samajhne se bachate hain.
+    """
+    if not rows:
+        return False
+    keys = [(k or "").strip().lower() for k in rows[0].keys()]
+    return any(k in ("coin", "symbol") for k in keys)
+
+
+# Tumhare sheet ke column headers (flexibility ke liye multiple naam support)
 COL = {
     "date":   ["date", "Date", "DATE", "tarikh", "date_entered"],
     "sym":    ["coin", "Coin", "COIN", "symbol", "Symbol", "SYMBOL"],
@@ -79,11 +106,16 @@ def _f(x, default=0.0):
 
 
 def load_entries():
-    """Sheet se sab journal entries parse karo."""
-    url = _resolve_sheet_url()
-    if not url:
+    """Sheet se sab journal entries parse karo (candidates order me try)."""
+    urls = _candidate_urls()
+    if not urls:
         return [], "JOURNAL_SHEET_URL set nahi hai (.env ya GitHub secret)"
-    rows = _fetch_csv(url)
+    rows = []
+    for u in urls:
+        cand = _fetch_csv(u)
+        if _looks_like_journal(cand):
+            rows = cand
+            break
     if not rows:
         return [], "Sheet khali hai ya public share nahi hai (Viewer access chahiye)"
 
@@ -200,3 +232,36 @@ def weekly_stats(entries, markets):
              f"{len(loss_t)} SL | P&L <b>${total_pnl:+.2f}</b>"]
     return "\n".join(lines)
 
+def sheet_push_prices(entries, markets):
+    """Open trades ke coins ke live prices sheet me push karo.
+
+    Sheet web app (?action=update) Trade Log ke O col me Live Price likhta hai
+    (sirf un rows pe jinka Exit khali hai) — sheet ke P&L formulas live calc
+    karte hain. Silent helper: fail hone pe False, kabhi exception nahi.
+    """
+    url = (getattr(config, "SHEET_WEBAPP_URL", "") or "").strip()
+    if not url or not entries:
+        return False
+    by_sym = {}
+    for c in markets:
+        sym = (c.get("symbol") or "").upper()
+        if sym and c.get("current_price") and sym not in by_sym:
+            by_sym[sym] = c["current_price"]
+    pairs, seen = [], set()
+    for e in entries:
+        s = e["sym"]
+        if s in seen or s not in by_sym:
+            continue
+        seen.add(s)
+        pairs.append(f"{s}:{by_sym[s]}")
+    if not pairs:
+        return False
+    try:
+        r = _session.get(
+            url,
+            params={"action": "update", "prices": ",".join(pairs)},
+            timeout=15,
+        )
+        return r.status_code == 200 and "OK" in r.text
+    except requests.RequestException:
+        return False
