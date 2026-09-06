@@ -1,0 +1,15 @@
+[Unit]
+Description=CryptoBhai Telegram Bot (24/7)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/cryptobhai
+ExecStart=/opt/cryptobhai/venv/bin/python agent.py
+Restart=always
+RestartSec=15
+# Crash ho to auto-restart, server reboot pe bhi auto-start
+
+[Install]
+WantedBy=multi-user.target
