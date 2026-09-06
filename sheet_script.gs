@@ -86,6 +86,10 @@ function formatTradeLog(ss) {
   var body = sh.getRange(2, 1, last - 1, 14);
   body.setFontColor(COLORS.fg).setBackground(COLORS.panel);
   applyLogFormulas(sh);
+  sh.getRange(2, 11, last - 1, 1).setNumberFormat("0.00");       // K = P&L %
+  sh.getRange(2, 12, last - 1, 1).setNumberFormat("$#,##0.00");  // L = P&L $
+  sh.getRange(2, 13, last - 1, 1).setNumberFormat("0.00");       // M = R
+  sh.getRange(2, 15, last - 1, 1).setNumberFormat("#,##0.####"); // O = Live Price
 }
 
 // Auto formulas: K=P&L%, L=P&L$, M=R, N=Result  (J = Exit/Live price)
@@ -106,9 +110,9 @@ function applyLogFormulas(sh) {
          + '/ABS(D2:D-E2:E)))';
   var fN = 'ARRAYFORMULA(IF(B2:B="","",'
          + 'IF(J2:J<>"", IF(K2:K>=0,"✅ WIN","❌ LOSS"),'
-         + 'IF(AND(F2:F<>"",O2:O<>"",IF(C2:C="SHORT",O2:O<=F2:F,O2:O>=F2:F)),"🎯 TP HIT",'
-         + 'IF(AND(E2:E<>"",O2:O<>"",IF(C2:C="SHORT",O2:O>=E2:E,O2:O<=E2:E)),"🛑 SL HIT",'
-         + '"⏳ OPEN"))))';
+         + 'IF((F2:F<>"")*(O2:O<>"")*IF(C2:C="SHORT",O2:O<=F2:F,O2:O>=F2:F),"🎯 TP HIT",'
+         + 'IF((E2:E<>"")*(O2:O<>"")*IF(C2:C="SHORT",O2:O>=E2:E,O2:O<=E2:E),"🛑 SL HIT",'
+         + '"⏳ OPEN")))))';
   sh.getRange(2, 11).setFormula(fK);   // K = P&L %
   sh.getRange(2, 12).setFormula(fL);   // L = P&L $
   sh.getRange(2, 13).setFormula(fM);   // M = R-multiple
