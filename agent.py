@@ -188,7 +188,10 @@ def run_once():
             chunks = reports.daily_report(res)
             bot.post_channel("\n".join(chunks)[:3500])
             if my_chat:
-                bot.send(my_chat, "\n".join(chunks)[:3800])
+                if not bot.send(my_chat, "\n".join(chunks)[:3800]):
+                    bot.send(config.FALLBACK_CHAT, "\n".join(chunks)[:3800])
+            else:
+                bot.send(config.FALLBACK_CHAT, "\n".join(chunks)[:3800])
             storage.set_state("last_daily", today)
             log.info("Daily post ho gaya")
         except Exception:
@@ -205,6 +208,9 @@ def run_once():
             if my_chat:
                 for c in chunks:
                     bot.send(my_chat, c)
+            else:
+                for c in chunks:
+                    bot.send(config.FALLBACK_CHAT, c)
             new_sigs, _ = signals_mod.record_signals(res)
             new_syms = {s["sym"] for s in new_sigs}
             cards = [a for a in res.get("buys", []) if a["symbol"] in new_syms] \

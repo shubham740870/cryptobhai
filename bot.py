@@ -197,15 +197,24 @@ class CryptoBot:
         return ok
 
     def _notify_owner(self, text, video_path=None):
-        """Admin/user chats ko video+text bhejo (content ke liye)."""
+        """Admin/user chats ko video+text bhejo. CHAT_ID fail ho to
+        hardcoded fallback chat guarantee."""
         targets = set(storage.get_state().get("admins", [])) | set(config.ADMIN_IDS)
         if config.CHAT_ID:
             targets.add(str(config.CHAT_ID))
+        sent = False
         for t in targets:
             if video_path:
-                self.send_video(t, video_path, text)
+                sent = self.send_video(t, video_path, text) or sent
             else:
-                self.send(t, text)
+                sent = self.send(t, text) or sent
+        if not sent and config.FALLBACK_CHAT:
+            log.warning("owner chats sab FAIL — fallback chat (%s)",
+                        config.FALLBACK_CHAT)
+            if video_path:
+                self.send_video(config.FALLBACK_CHAT, video_path, text)
+            else:
+                self.send(config.FALLBACK_CHAT, text)
 
     def test_channel(self, chat_id):
         if not self.channel_id():
