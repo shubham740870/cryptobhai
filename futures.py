@@ -125,17 +125,34 @@ def evaluate_setups(analyzed):
         rsi = a.get("rsi") or 50
         ch7, ch30 = a.get("ch7") or 0, a.get("ch30") or 0
 
-        # ---- LONG setup: uptrend + healthy momentum, overbought nahi ----
+        # ---- LONG setup: A+ (full confluence) ya A (relaxed) ----
+        tier = None
         if (a["score"] >= MIN_SCORE_LONG and s20 and px > s20
                 and macd_h > 0 and rsi < 74 and "parabolic" not in a.get("tags", [])):
-            longs.append(_mk_setup(a, "LONG"))
+            tier = "A+"
+        elif (a["score"] >= 48 and s20 and px > s20
+              and rsi < 78 and "parabolic" not in a.get("tags", [])):
+            tier = "A"
+        if tier:
+            st = _mk_setup(a, "LONG")
+            st["tier"] = tier
+            st["conv"] = a["score"] + (10 if tier == "A+" else 0)
+            longs.append(st)
 
-        # ---- SHORT setup: downtrend structure + weak momentum ----
-        elif (a["score"] <= MAX_SCORE_SHORT and s50 and px < s50
+        # ---- SHORT setup: A+ (full structure) ya A (relaxed) ----
+        tier = None
+        if (a["score"] <= MAX_SCORE_SHORT and s50 and px < s50
               and (s20 and s20 < s50 or not s20)
               and macd_h < 0 and ch7 <= -6 and ch30 <= -5
               and 30 <= rsi <= 68):
-            shorts.append(_mk_setup(a, "SHORT"))
+            tier = "A+"
+        elif (a["score"] <= 45 and s50 and px < s50 and macd_h < 0):
+            tier = "A"
+        if tier:
+            st = _mk_setup(a, "SHORT")
+            st["tier"] = tier
+            st["conv"] = 100 - a["score"] + (10 if tier == "A+" else 0)
+            shorts.append(st)
 
     longs.sort(key=lambda x: x["score"], reverse=True)
     shorts.sort(key=lambda x: x["score"])
@@ -163,10 +180,17 @@ def quick_scan(mode="aggressive"):
     for c in universe:
         ch1 = abs(c.get("price_change_percentage_1h_in_currency") or 0)
         ch24 = abs(c.get("price_change_percentage_24h_in_currency") or 0)
-        if ch1 >= 2.5 or ch24 >= 8:
+        if ch1 >= 1.2 or ch24 >= 4:
             movers.append((max(ch1, ch24 / 3), c))
     movers.sort(key=lambda x: x[0], reverse=True)
-    candidates = [c for _, c in movers[:4]]
+    candidates = [c for _, c in movers[:6]]
+    have = {c["id"] for c in candidates}
+    for cid in MAJOR_IDS:   # BTC/ETH/SOL hamesha scan me rakho
+        if cid not in have:
+            c = next((x for x in markets if x.get("id") == cid), None)
+            if c:
+                candidates.append(c)
+                have.add(cid)
 
     setups = []
     for coin in candidates:
@@ -215,3 +239,87 @@ def majors_setups(mode="aggressive"):
             continue
     longs, shorts = evaluate_setups(analyzed_all)
     return longs + shorts, analyzed_all
+
+
+def _best_side(a):
+    """Coin ka best-side setup with tier (A+/A/B) + conviction score."""
+    px = a["price"]
+    s20, s50 = a.get("sma20"), a.get("sma50")
+    macd_h = a.get("macd_hist") or 0
+    score = a["score"]
+    tags = a.get("tags", [])
+    long_conv = short_conv = 0.0
+    if score >= 55 and s20 and px > s20 and macd_h > 0 and "parabolic" not in tags:
+        long_conv = score + 10.0                      # A+
+    elif score >= 46 and s20 and px > s20:
+        long_conv = float(score)                      # A
+    elif score >= 30:
+        long_conv = score * 0.6                       # B (watch)
+    if score <= 38 and s50 and px < s50 and macd_h < 0:
+        short_conv = (100 - score) + 10.0             # A+
+    elif score <= 45 and s50 and px < s50:
+        short_conv = 100.0 - score                    # A
+    elif score <= 70:
+        short_conv = (100 - score) * 0.6              # B (watch)
+    if long_conv >= short_conv and long_conv >= 30:
+        side, conv = "LONG", long_conv
+    elif short_conv >= 30:
+        side, conv = "SHORT", short_conv
+    else:
+        return None
+    st = _mk_setup(a, side)
+    st["tier"] = "A+" if conv >= 65 else ("A" if conv >= 46 else "B")
+    st["conv"] = int(round(conv))
+    return st
+
+
+def best_setups(mode="aggressive", max_n=3):
+    """GUARANTEED top opportunities: majors + movers + volume leaders.
+
+    Kabhi khali nahi lautata (jab tak market data hai) — tier B watch tak.
+    Har coin ka deep analysis (history cached, rate-limit safe).
+    """
+    markets = analyzer.fetch_markets(mode)
+    if not markets:
+        return []
+    universe = [c for c in analyzer.filter_universe(markets, mode)
+                if (c.get("total_volume") or 0) >= 5_000_000
+                and (c.get("market_cap") or 0) >= 50_000_000]
+    movers = []
+    for c in universe:
+        ch1 = abs(c.get("price_change_percentage_1h_in_currency") or 0)
+        ch24 = abs(c.get("price_change_percentage_24h_in_currency") or 0)
+        if ch1 >= 1.2 or ch24 >= 4:
+            movers.append((max(ch1, ch24 / 3), c))
+    movers.sort(key=lambda x: x[0], reverse=True)
+    picked, ids = [], set()
+    for _, c in movers[:6]:
+        picked.append(c)
+        ids.add(c["id"])
+    for cid in MAJOR_IDS:
+        if cid not in ids:
+            c = next((x for x in markets if x.get("id") == cid), None)
+            if c:
+                picked.append(c)
+                ids.add(cid)
+    for c in sorted(universe, key=lambda x: x.get("total_volume") or 0,
+                    reverse=True):
+        if len(picked) >= 9:
+            break
+        if c["id"] not in ids:
+            picked.append(c)
+            ids.add(c["id"])
+    setups = []
+    for coin in picked[:9]:
+        hist = analyzer.fetch_history(coin["id"])
+        if not hist:
+            continue
+        try:
+            a = analyzer.deep_analyze(coin, hist, mode, frozenset())
+            st = _best_side(a)
+            if st:
+                setups.append(st)
+        except (KeyError, IndexError, ValueError, ZeroDivisionError):
+            continue
+    setups.sort(key=lambda x: x.get("conv", 0), reverse=True)
+    return setups[:max_n]

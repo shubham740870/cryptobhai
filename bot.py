@@ -26,6 +26,7 @@ HELP_TEXT = (
     "⚡ /futures — LONG/SHORT futures setups (leverage + liquidation)\n"
     "👑 /majors — BTC/ETH/SOL ka futures scan\n"
     "🎓 /pro btc — Professional desk analysis (structure/MTF/S-R/position size)\n"
+    "🥇🥈 /gold — GOLD + SILVER (XAU/XAG) live signals 🔥\n"
     "🎬 /content — last winning trade ka video + caption (IG/YT)\n"
     "📒 /journal — Google Sheet trading journal ka live P&L\n"
     "🔥 /trending — Abhi kya trend me hai\n"
@@ -383,6 +384,8 @@ class CryptoBot:
             self.cmd_content(chat_id)
         elif cmd == "journal":
             self.cmd_journal(chat_id)
+        elif cmd in ("gold", "silver", "metals"):
+            self.cmd_gold(chat_id)
         elif cmd == "autoscan":
             self.cmd_autoscan(chat_id)
         elif cmd == "trending":
@@ -594,6 +597,18 @@ class CryptoBot:
         markets = analyzer.fetch_markets(self._mode(chat_id))
         self.send(chat_id, journal_mod.journal_report(entries, markets))
 
+    def cmd_gold(self, chat_id):
+        """Gold + Silver metals desk (Yahoo hourly data)."""
+        try:
+            self.send(chat_id, "\U0001f947\U0001f948 <b>Metals Desk</b> \u2014 "
+                               "GOLD + SILVER analysis aa raha hai...")
+            import metals as metals_mod
+            self.send(chat_id, metals_mod.report())
+        except Exception:
+            log.exception("cmd_gold fail")
+            self.send(chat_id, "\u26a0\ufe0f Metals data nahi mila \u2014 "
+                               "thodi der baad try karo.")
+
     def autoscan_hourly(self):
         """24/7 hourly scanner: movers -> setups -> channel post."""
         import futures as futures_mod
@@ -641,6 +656,66 @@ class CryptoBot:
                         log.info("Early alert: %s (missing: %s)", a["symbol"], missing)
             except Exception:
                 log.exception("majors watch fail")
+
+            # ---- GOLD/SILVER signals (har ghante, alert 12h gap) ----
+            try:
+                import metals as metals_mod
+                msigs = metals_mod.scan_setups()
+                strong = [s for s in msigs if s.get("tier") in ("A+", "A")]
+                if strong:
+                    mal = storage.get_state().get("metal_alerts", {})
+                    bucket = time.strftime("%Y%m%d%H")
+                    for s in strong:
+                        key = f"{s['symbol']}_{s['side']}"
+                        if mal.get(key, "") == bucket:
+                            continue
+                        mal[key] = bucket
+                        storage.set_state("metal_alerts", mal)
+                        self.post_channel(
+                            "\U0001f6a8 <b>METALS SIGNAL!</b>\n"
+                            + metals_mod.card(s))
+                        log.info("Metal signal post: %s %s (%s)",
+                                 s["symbol"], s["side"], s["tier"])
+            except Exception:
+                log.exception("metals scan fail")
+
+            # ---- TOP OPPORTUNITIES guarantee (6h gap — HAMESHA kuch actionable)
+            try:
+                st_state = storage.get_state()
+                if time.time() - st_state.get("last_top_post", 0) >= 6 * 3600:
+                    pool = futures_mod.best_setups(mode, max_n=3)
+                    try:
+                        import metals as metals_mod2
+                        pool = pool + metals_mod2.scan_setups()
+                    except Exception:
+                        pass
+                    pool.sort(key=lambda x: x.get("conv", 0), reverse=True)
+                    if pool:
+                        lines = [
+                            "\U0001f3c6 <b>TOP OPPORTUNITIES \u2014 ABHI KE BEST</b>",
+                            "<i>Full confluence ka intezar na ho to ye bhi "
+                            "actionable levels hain (Tier B = confirmation "
+                            "pending)</i>", ""]
+                        for s in pool[:3]:
+                            lo, hi = s["entry"]
+                            se = "\U0001f7e2" if s["side"] == "LONG" else "\U0001f534"
+                            lines.append(
+                                f"{se} "
+                                f"<b>{html.escape(str(s['symbol']))} {s['side']}</b> "
+                                f"[Tier {s.get('tier', '?')}] \u2014 Entry "
+                                f"{analyzer.fmt_price(lo)}-{analyzer.fmt_price(hi)} "
+                                f"| SL {analyzer.fmt_price(s['sl'])} | TP "
+                                f"{analyzer.fmt_price(s['t1'])} "
+                                f"<i>({html.escape(str(s.get('name', '')))})</i>")
+                        lines.append("\n\u26a0\ufe0f Educational levels \u2014 "
+                                     "DYOR, SL ke bina trade nahi.")
+                        self.post_channel("\n".join(lines))
+                        storage.set_state("last_top_post", time.time())
+                        log.info("Top opportunities post: %d setups",
+                                 len(pool[:3]))
+            except Exception:
+                log.exception("top opportunities fail")
+
             # existing signals bhi check karo (target/SL hits)
             updates, _ = signals_mod.check_signals(mode)
             if updates:
