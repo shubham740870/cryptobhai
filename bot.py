@@ -483,15 +483,18 @@ class CryptoBot:
         if not setups:
             return
         if skip_record:
-            new_syms = {(s["symbol"], s["side"]) for s in setups}
+            new_syms = {(s.get("symbol") or s.get("sym"), s.get("side"))
+                        for s in setups}
         else:
             new_sigs, _ = signals_mod.record_setups(
                 [dict(s, kind="FUTURES") for s in setups], kind="FUTURES")
-            new_syms = {(s["sym"], s["side"]) for s in new_sigs}
+            new_syms = {(s.get("symbol") or s.get("sym"), s.get("side"))
+                        for s in new_sigs}
         cards = setups[:4]
         if also_chat and not skip_record:
             cards = [a for a in setups
-                     if (a["symbol"], a["side"]) in new_syms] or cards
+                     if (a.get("symbol") or a.get("sym"),
+                         a.get("side")) in new_syms] or cards
         for a in cards:
             hist = analyzer.fetch_history(a["id"])
             if not hist:
@@ -621,7 +624,7 @@ class CryptoBot:
                 if new_sigs:
                     log.info("AutoScan: %d naye futures setups (%s)",
                              len(new_sigs), note)
-                    self._publish_futures(new_sigs)
+                    self._publish_futures(new_sigs, skip_record=True)
                     self.post_channel(
                         "\U0001f916 <b>AUTO-SCANNER: NAYA SETUP MILA!</b>\n"
                         f"<i>Movement: {html.escape(note)}</i>")

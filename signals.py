@@ -170,3 +170,39 @@ def performance_summary(kind=None):
     wins = [s for s in closed if (s.get("result_pct") or 0) > 0]
     open_sigs = [s for s in sigs if s["status"] in ("OPEN", "T1_HIT")]
     return sigs, open_sigs, closed, wins
+
+def record_signals(res, kind="SPOT"):
+    """Analyzed dicts (weekly/daily picks) ko spot signals me record karo.
+
+    purana naam — agent.py/bot.py ab bhi yahi call karte hain. Analyzed dict
+    (verdict/price/risk_pct) ko spot setup me badal ke record_setups ko dete hain.
+    """
+    setups = []
+    for a in res or []:
+        v = (a.get("verdict") or "").upper()
+        if "BUY" in v:
+            side = "LONG"
+        elif "SELL" in v:
+            side = "SHORT"
+        else:
+            continue
+        px = a.get("price") or 0
+        if px <= 0:
+            continue
+        risk = a.get("risk_pct") or 4.0
+        rp = risk / 100.0
+        if side == "LONG":
+            sl = px * (1 - rp)
+            t1 = px * (1 + rp * 1.5)
+            t2 = px * (1 + rp * 2.5)
+        else:
+            sl = px * (1 + rp)
+            t1 = px * (1 - rp * 1.5)
+            t2 = px * (1 - rp * 2.5)
+        setups.append(dict(a, side=side, entry=(px * 0.99, px * 1.01),
+                           sl=sl, t1=t1, t2=t2, rr=1.5, lev=1, liq=0,
+                           risk_pct=risk, confidence="MEDIUM",
+                           verdict=a.get("verdict")))
+    if not setups:
+        return [], []
+    return record_setups([dict(s, kind=kind) for s in setups], kind=kind)
