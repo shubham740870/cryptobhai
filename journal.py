@@ -111,11 +111,16 @@ def load_entries():
     if not urls:
         return [], "JOURNAL_SHEET_URL set nahi hai (.env ya GitHub secret)"
     rows = []
-    for u in urls:
-        cand = _fetch_csv(u)
-        if _looks_like_journal(cand):
-            rows = cand
+    import time as _t
+    for attempt in range(2):   # gviz kabhi kabhi throttle hota hai — 2 tries
+        for u in urls:
+            cand = _fetch_csv(u)
+            if _looks_like_journal(cand):
+                rows = cand
+                break
+        if rows:
             break
+        _t.sleep(2)
     if not rows:
         return [], "Sheet khali hai ya public share nahi hai (Viewer access chahiye)"
 

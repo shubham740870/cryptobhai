@@ -177,8 +177,14 @@ def record_signals(res, kind="SPOT"):
     purana naam — agent.py/bot.py ab bhi yahi call karte hain. Analyzed dict
     (verdict/price/risk_pct) ko spot setup me badal ke record_setups ko dete hain.
     """
+    if isinstance(res, dict):
+        items = list(res.get("buys") or []) + list(res.get("sells") or [])
+    else:
+        items = list(res or [])
     setups = []
-    for a in res or []:
+    for a in items:
+        if not isinstance(a, dict):
+            continue
         v = (a.get("verdict") or "").upper()
         if "BUY" in v:
             side = "LONG"

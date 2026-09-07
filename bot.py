@@ -480,6 +480,22 @@ class CryptoBot:
 
     def _publish_futures(self, setups, also_chat=None, skip_record=False):
         import futures as futures_mod
+        # normalize: recorded-signal dicts (sym/entry-float/no-price) ko
+        # setup shape me lao (symbol/price/entry-tuple) — chart/caption safe
+        norm = []
+        for s in setups or []:
+            s = dict(s)
+            if not s.get("symbol"):
+                s["symbol"] = s.get("sym") or ""
+            e = s.get("entry")
+            if not isinstance(e, (list, tuple)):
+                ev = float(e or s.get("price") or 0)
+                s["entry"] = (ev * 0.99, ev * 1.01)
+            if not s.get("price"):
+                s["price"] = (s["entry"][0] + s["entry"][1]) / 2
+            if s.get("symbol") and s.get("price"):
+                norm.append(s)
+        setups = norm
         if not setups:
             return
         if skip_record:
@@ -624,7 +640,11 @@ class CryptoBot:
                 if new_sigs:
                     log.info("AutoScan: %d naye futures setups (%s)",
                              len(new_sigs), note)
-                    self._publish_futures(new_sigs, skip_record=True)
+                    new_keys = {(s.get("sym") or s.get("symbol"), s.get("side"))
+                                for s in new_sigs}
+                    to_pub = [s for s in setups
+                              if (s.get("symbol"), s.get("side")) in new_keys]
+                    self._publish_futures(to_pub or setups, skip_record=True)
                     self.post_channel(
                         "\U0001f916 <b>AUTO-SCANNER: NAYA SETUP MILA!</b>\n"
                         f"<i>Movement: {html.escape(note)}</i>")
