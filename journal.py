@@ -54,14 +54,23 @@ def _candidate_urls():
 
 
 def _fetch_csv(url):
-    """Public Google Sheet CSV fetch karo (gviz ya export endpoint)."""
+    """Public Google Sheet CSV fetch karo (gviz ya export endpoint).
+
+    (rows, header_only) — header_only=True matlab tab exist karta hai
+    lekin usme ek bhi trade row nahi hai.
+    """
     try:
         r = _session.get(url, timeout=20)
         if r.status_code == 200 and r.text.strip():
-            return list(csv.DictReader(io.StringIO(r.text)))
+            rows = list(csv.DictReader(io.StringIO(r.text)))
+            if not rows:
+                first = r.text.splitlines()[0].lower() if r.text else ""
+                header_only = "coin" in first or "symbol" in first
+                return [], header_only
+            return rows, False
     except requests.RequestException:
         pass
-    return []
+    return [], False
 
 
 def _looks_like_journal(rows):
@@ -111,17 +120,23 @@ def load_entries():
     if not urls:
         return [], "JOURNAL_SHEET_URL set nahi hai (.env ya GitHub secret)"
     rows = []
+    header_only = False
     import time as _t
     for attempt in range(2):   # gviz kabhi kabhi throttle hota hai — 2 tries
         for u in urls:
-            cand = _fetch_csv(u)
+            cand, h_only = _fetch_csv(u)
             if _looks_like_journal(cand):
                 rows = cand
                 break
+            if h_only:
+                header_only = True
         if rows:
             break
         _t.sleep(2)
     if not rows:
+        if header_only:
+            return [], ("Trade Log me abhi koi trade nahi hai — "
+                        "pehla trade Trade Log tab me daalo!")
         return [], "Sheet khali hai ya public share nahi hai (Viewer access chahiye)"
 
     entries = []
