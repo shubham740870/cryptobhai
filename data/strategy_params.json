@@ -1,13 +1,65 @@
 {
  "metals": {
   "params": {
-   "rsi_filter": true,
-   "sl_mult": 2.2,
+   "sl_mult": 2.0,
    "tp_mult": 3.0,
+   "rsi_filter": true,
    "trend": "ema20_50"
   },
-  "avg_win_rate": 74.2,
-  "avg_profit_factor": 2.91,
+  "strategy": "voltarget",
+  "stats": {
+   "trades": 15,
+   "win_rate": 73.3,
+   "profit_factor": 4.13,
+   "maxdd_r": 1.0,
+   "exp_r": 0.83
+  },
+  "all_strategies": {
+   "turtle": {
+    "trades": 36,
+    "win_rate": 52.8,
+    "profit_factor": 1.88,
+    "maxdd_r": 3.4,
+    "exp_r": 0.37
+   },
+   "trend_atr": {
+    "trades": 39,
+    "win_rate": 61.5,
+    "profit_factor": 2.32,
+    "maxdd_r": 5.0,
+    "exp_r": 0.45
+   },
+   "rsi2": {
+    "trades": 22,
+    "win_rate": 68.2,
+    "profit_factor": 1.42,
+    "maxdd_r": 1.0,
+    "exp_r": 0.06
+   },
+   "momentum": {
+    "trades": 23,
+    "win_rate": 52.2,
+    "profit_factor": 2.77,
+    "maxdd_r": 4.0,
+    "exp_r": 0.8
+   },
+   "tj_5to1": {
+    "trades": 40,
+    "win_rate": 40.0,
+    "profit_factor": 3.04,
+    "maxdd_r": 5.0,
+    "exp_r": 1.21
+   },
+   "voltarget": {
+    "trades": 15,
+    "win_rate": 73.3,
+    "profit_factor": 4.13,
+    "maxdd_r": 1.0,
+    "exp_r": 0.83
+   }
+  },
+  "avg_win_rate": 73.3,
+  "avg_profit_factor": 4.13,
   "instruments": {
    "GC=F": 76.5,
    "SI=F": 72.0
@@ -16,13 +68,65 @@
  },
  "fx": {
   "params": {
-   "rsi_filter": true,
-   "sl_mult": 2.2,
+   "sl_mult": 2.0,
    "tp_mult": 2.0,
+   "rsi_filter": true,
    "trend": "ema20_50"
   },
-  "avg_win_rate": 50.2,
-  "avg_profit_factor": 1.02,
+  "strategy": "turtle",
+  "stats": {
+   "trades": 27,
+   "win_rate": 37.0,
+   "profit_factor": 1.13,
+   "maxdd_r": 2.9,
+   "exp_r": 0.04
+  },
+  "all_strategies": {
+   "turtle": {
+    "trades": 27,
+    "win_rate": 37.0,
+    "profit_factor": 1.13,
+    "maxdd_r": 2.9,
+    "exp_r": 0.04
+   },
+   "trend_atr": {
+    "trades": 31,
+    "win_rate": 48.4,
+    "profit_factor": 0.86,
+    "maxdd_r": 2.8,
+    "exp_r": -0.06
+   },
+   "rsi2": {
+    "trades": 26,
+    "win_rate": 50.0,
+    "profit_factor": 1.03,
+    "maxdd_r": 1.2,
+    "exp_r": 0.0
+   },
+   "momentum": {
+    "trades": 18,
+    "win_rate": 11.1,
+    "profit_factor": 0.16,
+    "maxdd_r": 10.0,
+    "exp_r": -0.75
+   },
+   "tj_5to1": {
+    "trades": 30,
+    "win_rate": 23.3,
+    "profit_factor": 0.46,
+    "maxdd_r": 10.1,
+    "exp_r": -0.41
+   },
+   "voltarget": {
+    "trades": 18,
+    "win_rate": 27.8,
+    "profit_factor": 0.39,
+    "maxdd_r": 6.7,
+    "exp_r": -0.38
+   }
+  },
+  "avg_win_rate": 37.0,
+  "avg_profit_factor": 1.13,
   "instruments": {
    "GBPUSD=X": 46.7,
    "EURUSD=X": 53.8
@@ -31,13 +135,65 @@
  },
  "crypto": {
   "params": {
+   "sl_mult": 2.0,
+   "tp_mult": 3.0,
    "rsi_filter": true,
-   "sl_mult": 1.8,
-   "tp_mult": 2.0,
    "trend": "ema50_200"
   },
-  "avg_win_rate": 54.0,
-  "avg_profit_factor": 1.17,
+  "strategy": "voltarget",
+  "stats": {
+   "trades": 33,
+   "win_rate": 48.5,
+   "profit_factor": 1.51,
+   "maxdd_r": 5.0,
+   "exp_r": 0.22
+  },
+  "all_strategies": {
+   "turtle": {
+    "trades": 60,
+    "win_rate": 48.3,
+    "profit_factor": 1.11,
+    "maxdd_r": 4.8,
+    "exp_r": 0.05
+   },
+   "trend_atr": {
+    "trades": 57,
+    "win_rate": 49.1,
+    "profit_factor": 1.01,
+    "maxdd_r": 5.7,
+    "exp_r": 0.01
+   },
+   "rsi2": {
+    "trades": 51,
+    "win_rate": 66.7,
+    "profit_factor": 1.4,
+    "maxdd_r": 1.0,
+    "exp_r": 0.05
+   },
+   "momentum": {
+    "trades": 30,
+    "win_rate": 36.7,
+    "profit_factor": 1.06,
+    "maxdd_r": 3.5,
+    "exp_r": 0.03
+   },
+   "tj_5to1": {
+    "trades": 60,
+    "win_rate": 23.3,
+    "profit_factor": 1.3,
+    "maxdd_r": 12.2,
+    "exp_r": 0.23
+   },
+   "voltarget": {
+    "trades": 33,
+    "win_rate": 48.5,
+    "profit_factor": 1.51,
+    "maxdd_r": 5.0,
+    "exp_r": 0.22
+   }
+  },
+  "avg_win_rate": 48.5,
+  "avg_profit_factor": 1.51,
   "instruments": {
    "BTC-USD": 53.1,
    "ETH-USD": 54.8
@@ -46,13 +202,65 @@
  },
  "nse": {
   "params": {
+   "sl_mult": 3.0,
+   "tp_mult": 1.2,
    "rsi_filter": true,
-   "sl_mult": 2.2,
-   "tp_mult": 2.0,
    "trend": "ema50_200"
   },
-  "avg_win_rate": 55.7,
-  "avg_profit_factor": 1.27,
+  "strategy": "rsi2",
+  "stats": {
+   "trades": 58,
+   "win_rate": 70.7,
+   "profit_factor": 1.97,
+   "maxdd_r": 1.3,
+   "exp_r": 0.11
+  },
+  "all_strategies": {
+   "turtle": {
+    "trades": 63,
+    "win_rate": 49.2,
+    "profit_factor": 1.07,
+    "maxdd_r": 4.7,
+    "exp_r": 0.03
+   },
+   "trend_atr": {
+    "trades": 75,
+    "win_rate": 50.7,
+    "profit_factor": 0.99,
+    "maxdd_r": 4.3,
+    "exp_r": -0.0
+   },
+   "rsi2": {
+    "trades": 58,
+    "win_rate": 70.7,
+    "profit_factor": 1.97,
+    "maxdd_r": 1.3,
+    "exp_r": 0.11
+   },
+   "momentum": {
+    "trades": 29,
+    "win_rate": 34.5,
+    "profit_factor": 0.95,
+    "maxdd_r": 4.1,
+    "exp_r": -0.03
+   },
+   "tj_5to1": {
+    "trades": 71,
+    "win_rate": 19.7,
+    "profit_factor": 0.96,
+    "maxdd_r": 11.0,
+    "exp_r": -0.04
+   },
+   "voltarget": {
+    "trades": 29,
+    "win_rate": 48.3,
+    "profit_factor": 1.23,
+    "maxdd_r": 4.1,
+    "exp_r": 0.11
+   }
+  },
+  "avg_win_rate": 70.7,
+  "avg_profit_factor": 1.97,
   "instruments": {
    "RELIANCE.NS": 57.9,
    "^NSEI": 56.2,

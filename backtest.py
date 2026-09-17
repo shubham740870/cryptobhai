@@ -30,7 +30,8 @@ PARAM_GRID = {
     "rsi_filter": [True, False],   # True = RSI<72 long / >28 short (avoid exhaustion)
     "trend": ["ema20_50", "ema50_200"],
 }
-DEFAULTS = {"sl_mult": 1.8, "tp_mult": 2.2, "rsi_filter": True, "trend": "ema20_50"}
+DEFAULTS = {"sl_mult": 1.8, "tp_mult": 2.2, "rsi_filter": True,
+            "trend": "ema20_50", "strategy": "trend_atr"}
 
 
 def fetch_daily(sym, rng="2y"):

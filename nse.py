@@ -107,6 +107,13 @@ def fetch_stock(sym, ttl=3600):
     _, _, hist = ind.macd(closes)
     macd_h = ind.last_valid(hist) or 0
     atr_v = ind.last_valid(ind.atr(highs, lows, closes, 14)) or px * 0.02
+    r2v = ind.last_valid(ind.rsi(closes, 2)) or 50
+    dhi = max(highs[-21:-1]) if len(highs) > 21 else px
+    dlo = min(lows[-21:-1]) if len(lows) > 21 else px
+    m126 = (px / closes[-127] - 1) if len(closes) > 127 else 0.0
+    _atr_all = [x for x in (ind.atr(highs, lows, closes, 14) or []) if x]
+    _apct = sorted(a / c * 100 for a, c in zip(_atr_all[-200:], closes[-len(_atr_all[-200:]):]) if c)
+    amed = _apct[len(_apct) // 2] if _apct else (atr_v / px * 100) * 1.2
     atr_pct = atr_v / px * 100
     ch5 = (px / closes[-6] - 1) * 100 if len(closes) > 6 else 0.0
     ch20 = (px / closes[-21] - 1) * 100 if len(closes) > 21 else 0.0
@@ -120,7 +127,7 @@ def fetch_stock(sym, ttl=3600):
     out = dict(symbol=sym, name=sym, dec=2, price=px, ch5d=ch5, ch20d=ch20,
                rsi=rsi, ema20=e20, ema50=e50, ema200=e200, macd_hist=macd_h,
                atr=atr_v, atr_pct=atr_pct, trend=trend,
-               hi52=hi52, lo52=lo52, id=f"nse-{sym.lower().replace('&', '').replace('-', '')}")
+               hi52=hi52, lo52=lo52, id=f"nse-{sym.lower().replace('&', '').replace('-', '')}", rsi2=r2v, don_hi=dhi, don_lo=dlo, mom126=m126, atr_med=amed)
     _cache[sym] = (out, time.time())
     return out
 
@@ -131,19 +138,8 @@ def make_signal(m):
     px, atr_v = m["price"], m["atr"]
     sl_d = p["sl_mult"] * atr_v
     tp_d = p["tp_mult"] * atr_v
-    long_ok = (m["price"] > m["ema50"]
-               and (m["ema50"] > m["ema200"] if p["trend"] == "ema50_200" else True)
-               and m["macd_hist"] > 0 and m["rsi"] < 74)
-    short_ok = (m["price"] < m["ema50"]
-                and (m["ema50"] < m["ema200"] if p["trend"] == "ema50_200" else True)
-                and m["macd_hist"] < 0 and m["rsi"] > 26)
-    side = "LONG" if long_ok else ("SHORT" if short_ok else None)
-    tier = "B"
-    if side:
-        align = (m["trend"] == "UP") if side == "LONG" else (m["trend"] == "DOWN")
-        tier = "A" if align else "B"
-    if side is None:
-        side = "SHORT" if m["trend"] == "DOWN" else "LONG"
+    import masters as _masters
+    side, tier = _masters.entry(m, p.get("strategy", "trend_atr"))
     d = 1 if side == "LONG" else -1
     return dict(
         symbol=m["symbol"], name=m["name"], dec=2,

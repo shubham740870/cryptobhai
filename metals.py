@@ -60,6 +60,14 @@ def fetch_metal(sym, ttl=900):
     _, _, hist = ind.macd(closes)
     macd_h = ind.last_valid(hist) or 0
     atr_v = ind.last_valid(ind.atr(highs, lows, closes, 14)) or px * 0.004
+    e200 = ind.last_valid(ind.ema(closes, 200)) or px
+    r2v = ind.last_valid(ind.rsi(closes, 2)) or 50
+    dhi = max(highs[-21:-1]) if len(highs) > 21 else px
+    dlo = min(lows[-21:-1]) if len(lows) > 21 else px
+    m126 = (px / closes[-127] - 1) if len(closes) > 127 else 0.0
+    _atr_all = [x for x in (ind.atr(highs, lows, closes, 14) or []) if x]
+    _apct = sorted(a / c * 100 for a, c in zip(_atr_all[-200:], closes[-len(_atr_all[-200:]):]) if c)
+    amed = _apct[len(_apct) // 2] if _apct else (atr_v / px * 100) * 1.2
     atr_pct = atr_v / px * 100
     ch24 = (px / closes[-25] - 1) * 100 if len(closes) > 25 else 0.0
     ch7d = (px / closes[-169] - 1) * 100 if len(closes) > 169 else 0.0
@@ -73,7 +81,7 @@ def fetch_metal(sym, ttl=900):
     out = dict(symbol=sym, name=meta["name"], emoji=meta["emoji"], dec=meta["dec"],
                price=px, ch24h=ch24, ch7d=ch7d, rsi=rsi, ema20=e20, ema50=e50,
                macd_hist=macd_h, atr=atr_v, atr_pct=atr_pct, trend=trend,
-               hi24=hi24, lo24=lo24, id=f"metal-{sym.lower()}")
+               hi24=hi24, lo24=lo24, id=f"metal-{sym.lower()}", e200=e200, rsi2=r2v, don_hi=dhi, don_lo=dlo, mom126=m126, atr_med=amed)
     _cache[sym] = (out, time.time())
     return out
 
@@ -98,19 +106,8 @@ def make_signal(m):
     px, atr_v = m["price"], m["atr"]
     sl_d = p["sl_mult"] * atr_v
     tp_d = p["tp_mult"] * atr_v
-    long_ok = m["trend"] == "UP" and m["macd_hist"] > 0 and m["rsi"] < 74
-    short_ok = m["trend"] == "DOWN" and m["macd_hist"] < 0 and m["rsi"] > 26
-    side = "LONG" if long_ok else ("SHORT" if short_ok else None)
-    tier = "B"
-    if side == "LONG" and m["rsi"] < 68 and px > m["ema20"]:
-        tier = "A"
-    elif side == "SHORT" and m["rsi"] > 32 and px < m["ema20"]:
-        tier = "A"
-    if tier == "A" and m["atr_pct"] >= 0.10:
-        tier = "A+"
-    if side is None:
-        side = "SHORT" if m["trend"] == "DOWN" else "LONG"
-        tier = "B"
+    import masters as _masters
+    side, tier = _masters.entry(m, p.get("strategy", "trend_atr"))
     d = 1 if side == "LONG" else -1
     sl = px - d * sl_d
     t1 = px + d * tp_d * 0.7
