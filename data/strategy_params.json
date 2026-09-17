@@ -1,0 +1,64 @@
+{
+ "metals": {
+  "params": {
+   "rsi_filter": true,
+   "sl_mult": 2.2,
+   "tp_mult": 3.0,
+   "trend": "ema20_50"
+  },
+  "avg_win_rate": 74.2,
+  "avg_profit_factor": 2.91,
+  "instruments": {
+   "GC=F": 76.5,
+   "SI=F": 72.0
+  },
+  "tuned_at": "2026-09-17"
+ },
+ "fx": {
+  "params": {
+   "rsi_filter": true,
+   "sl_mult": 2.2,
+   "tp_mult": 2.0,
+   "trend": "ema20_50"
+  },
+  "avg_win_rate": 50.2,
+  "avg_profit_factor": 1.02,
+  "instruments": {
+   "GBPUSD=X": 46.7,
+   "EURUSD=X": 53.8
+  },
+  "tuned_at": "2026-09-17"
+ },
+ "crypto": {
+  "params": {
+   "rsi_filter": true,
+   "sl_mult": 1.8,
+   "tp_mult": 2.0,
+   "trend": "ema50_200"
+  },
+  "avg_win_rate": 54.0,
+  "avg_profit_factor": 1.17,
+  "instruments": {
+   "BTC-USD": 53.1,
+   "ETH-USD": 54.8
+  },
+  "tuned_at": "2026-09-17"
+ },
+ "nse": {
+  "params": {
+   "rsi_filter": true,
+   "sl_mult": 2.2,
+   "tp_mult": 2.0,
+   "trend": "ema50_200"
+  },
+  "avg_win_rate": 55.7,
+  "avg_profit_factor": 1.27,
+  "instruments": {
+   "RELIANCE.NS": 57.9,
+   "^NSEI": 56.2,
+   "TCS.NS": 56.2,
+   "HDFCBANK.NS": 52.6
+  },
+  "tuned_at": "2026-09-17"
+ }
+}

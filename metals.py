@@ -7,6 +7,7 @@ import time
 
 import requests
 
+import backtest
 import indicators as ind
 
 UA = {"User-Agent": "Mozilla/5.0 (compatible; CryptoBhaiAgent/1.0)"}
@@ -77,9 +78,26 @@ def fetch_metal(sym, ttl=900):
     return out
 
 
+def candles(sym, interval="1h", rng="3mo"):
+    """Yahoo candles -> [[ms, close], ...] (result-charts ke liye)."""
+    try:
+        r = requests.get(
+            f"https://query1.finance.yahoo.com/v8/finance/chart/{METALS[sym]['ysym']}",
+            params={"interval": interval, "range": rng}, headers=UA, timeout=15)
+        res = r.json()["chart"]["result"][0]
+        ts = res.get("timestamp") or []
+        closes = res["indicators"]["quote"][0]["close"]
+        return [[t * 1000, c] for t, c in zip(ts, closes) if c]
+    except (requests.RequestException, ValueError, KeyError, IndexError):
+        return []
+
+
 def make_signal(m):
-    """Metal TA dict se tiered trade setup (crypto engine ke format me)."""
+    """Tuned METALS params (backtest: SL 2.2xATR, TP 3.0xATR, EMA20/50)."""
+    p = backtest.params("metals")
     px, atr_v = m["price"], m["atr"]
+    sl_d = p["sl_mult"] * atr_v
+    tp_d = p["tp_mult"] * atr_v
     long_ok = m["trend"] == "UP" and m["macd_hist"] > 0 and m["rsi"] < 74
     short_ok = m["trend"] == "DOWN" and m["macd_hist"] < 0 and m["rsi"] > 26
     side = "LONG" if long_ok else ("SHORT" if short_ok else None)
@@ -94,9 +112,9 @@ def make_signal(m):
         side = "SHORT" if m["trend"] == "DOWN" else "LONG"
         tier = "B"
     d = 1 if side == "LONG" else -1
-    sl = px - d * 1.8 * atr_v
-    t1 = px + d * 2.2 * atr_v
-    t2 = px + d * 3.5 * atr_v
+    sl = px - d * sl_d
+    t1 = px + d * tp_d * 0.7
+    t2 = px + d * tp_d
     risk = abs(px - sl) / px * 100
     return dict(
         symbol=m["symbol"], name=m["name"], emoji=m["emoji"], dec=m["dec"],

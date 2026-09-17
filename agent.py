@@ -277,6 +277,10 @@ def run_once():
             and state.get("last_weekly") != today):
         try:
             res = analyzer.run_weekly(config.DEFAULT_MODE)
+            # SCOPE: crypto buys sirf TOP-20 (user scope change)
+            if isinstance(res, dict):
+                res["buys"] = [b for b in (res.get("buys") or [])
+                               if (b.get("market_cap_rank") or 999) <= 20][:8]
             chunks = reports.weekly_report(res)
             bot.post_channel("\n".join(chunks)[:3800])
             if my_chat:

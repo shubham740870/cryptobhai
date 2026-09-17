@@ -98,7 +98,12 @@ def check_signals(mode="aggressive"):
         if s["status"] not in ("OPEN", "T1_HIT"):
             continue
         coin = by_id.get(s["id"])
-        price = coin["current_price"] if coin else s["last_price"]
+        if coin:
+            price = coin["current_price"]
+        elif s.get("kind") in EXT_KINDS:
+            price = _live_external(s) or s["last_price"]
+        else:
+            price = s["last_price"]
         side = s.get("side", "LONG")
         entry = s["entry"]
 
@@ -108,8 +113,11 @@ def check_signals(mode="aggressive"):
 
         # signal date ke baad ka high/low (intraday hits ke liye)
         try:
-            hist = analyzer.fetch_history(s["id"], 90)
-            pts = hist.get("prices") or []
+            if not coin and s.get("kind") in EXT_KINDS:
+                hist = external_hist(s, 90)
+            else:
+                hist = analyzer.fetch_history(s["id"], 90)
+            pts = (hist.get("prices") or []) if hist else []
             since = [pt[1] for pt in pts if pt and pt[0] / 1000 >= s["epoch"] - 86400]
             hi_since = max(since) if since else price
             lo_since = min(since) if since else price
@@ -212,3 +220,49 @@ def record_signals(res, kind="SPOT"):
     if not setups:
         return [], []
     return record_setups([dict(s, kind=kind) for s in setups], kind=kind)
+
+# ---------------------------------------------------------------------------
+# Multi-asset live data (METALS / FX / NSE signals — CoinGecko ke bahar)
+# ---------------------------------------------------------------------------
+
+EXT_KINDS = ("METALS", "FX", "NSE")
+
+
+def _live_external(sig):
+    """Non-crypto signal ka live price (module cache se)."""
+    kind, sym = sig.get("kind"), sig.get("sym")
+    try:
+        if kind == "METALS":
+            import metals as _mm
+            d = _mm.fetch_metal(sym)
+        elif kind == "FX":
+            import forex as _fx
+            d = _fx.fetch_pair(sym)
+        elif kind == "NSE":
+            import nse as _ns
+            d = _ns.fetch_stock(sym)
+        else:
+            return None
+        return (d or {}).get("price")
+    except Exception:
+        return None
+
+
+def external_hist(sig, days=90):
+    """Non-crypto signal ka price-history (result_chart format me)."""
+    kind, sym = sig.get("kind"), sig.get("sym")
+    try:
+        if kind == "METALS":
+            import metals as _mm
+            pts = _mm.candles(sym, "1h", "3mo")
+        elif kind == "FX":
+            import forex as _fx
+            pts = _fx.candles(sym, "1h", "3mo")
+        elif kind == "NSE":
+            import nse as _ns
+            pts = _ns.candles(sym, "1d", "6mo")
+        else:
+            return None
+        return {"prices": pts}
+    except Exception:
+        return None

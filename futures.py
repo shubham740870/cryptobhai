@@ -172,9 +172,11 @@ def quick_scan(mode="aggressive"):
     markets = analyzer.fetch_markets(mode)
     if not markets:
         return [], ""
+    # TOP-20 ONLY (user scope): small caps/meme coins OUT
     universe = [c for c in analyzer.filter_universe(markets, mode)
                 if (c.get("total_volume") or 0) >= 5_000_000
-                and (c.get("market_cap") or 0) >= 50_000_000]
+                and (c.get("market_cap") or 0) >= 50_000_000
+                and (c.get("market_cap_rank") or 999) <= 20]
 
     movers = []
     for c in universe:
@@ -282,9 +284,11 @@ def best_setups(mode="aggressive", max_n=3):
     markets = analyzer.fetch_markets(mode)
     if not markets:
         return []
+    # TOP-20 ONLY (user scope): small caps/meme coins OUT
     universe = [c for c in analyzer.filter_universe(markets, mode)
                 if (c.get("total_volume") or 0) >= 5_000_000
-                and (c.get("market_cap") or 0) >= 50_000_000]
+                and (c.get("market_cap") or 0) >= 50_000_000
+                and (c.get("market_cap_rank") or 999) <= 20]
     movers = []
     for c in universe:
         ch1 = abs(c.get("price_change_percentage_1h_in_currency") or 0)

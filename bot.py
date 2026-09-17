@@ -27,6 +27,8 @@ HELP_TEXT = (
     "👑 /majors — BTC/ETH/SOL ka futures scan\n"
     "🎓 /pro btc — Professional desk analysis (structure/MTF/S-R/position size)\n"
     "🥇🥈 /gold — GOLD + SILVER (XAU/XAG) live signals 🔥\n"
+    "💱 /fx — GBP/USD + EUR/USD forex signals\n"
+    "🇮🇳 /nse — India Top-100 stocks scan (NIFTY 100)\n"
     "🎬 /content — last winning trade ka video + caption (IG/YT)\n"
     "📒 /journal — Google Sheet trading journal ka live P&L\n"
     "🔥 /trending — Abhi kya trend me hai\n"
@@ -264,7 +266,10 @@ class CryptoBot:
         """T1 hit / closed signals ka result post (chart ke saath)."""
         for u in updates:
             s = u["sig"]
-            hist = analyzer.fetch_history(s["id"])
+            if s.get("kind") in signals_mod.EXT_KINDS:
+                hist = signals_mod.external_hist(s)
+            else:
+                hist = analyzer.fetch_history(s["id"])
             path = None
             try:
                 if hist:
@@ -386,6 +391,10 @@ class CryptoBot:
             self.cmd_journal(chat_id)
         elif cmd in ("gold", "silver", "metals"):
             self.cmd_gold(chat_id)
+        elif cmd in ("fx", "forex"):
+            self.cmd_fx(chat_id)
+        elif cmd in ("nse", "stocks"):
+            self.cmd_nse(chat_id)
         elif cmd == "autoscan":
             self.cmd_autoscan(chat_id)
         elif cmd == "trending":
@@ -422,6 +431,10 @@ class CryptoBot:
         if not ready:
             self.send(chat_id, "⏳ Weekly analysis pehle se chal raha hai — result 1-2 min me aa raha hai...")
             return
+        # SCOPE: crypto buys sirf TOP-20
+        if isinstance(res, dict):
+            res["buys"] = [b for b in (res.get("buys") or [])
+                           if (b.get("market_cap_rank") or 999) <= 20][:8]
         for chunk in reports.weekly_report(res):
             self.send(chat_id, chunk)
         new_sigs, _ = signals_mod.record_signals(res)
@@ -616,6 +629,30 @@ class CryptoBot:
         markets = analyzer.fetch_markets(self._mode(chat_id))
         self.send(chat_id, journal_mod.journal_report(entries, markets))
 
+    def cmd_fx(self, chat_id):
+        """GBP/USD + EUR/USD FX desk."""
+        try:
+            self.send(chat_id, "\U0001f4b1 <b>FX Desk</b> \u2014 GBP/USD + "
+                               "EUR/USD analysis aa raha hai...")
+            import forex as forex_mod
+            self.send(chat_id, forex_mod.report())
+        except Exception:
+            log.exception("cmd_fx fail")
+            self.send(chat_id, "\u26a0\ufe0f FX data nahi mila \u2014 "
+                               "thodi der baad try karo.")
+
+    def cmd_nse(self, chat_id):
+        """India Top-100 NSE stocks desk (rotating scan)."""
+        try:
+            self.send(chat_id, "\U0001f1ee\U0001f1f3 <b>NSE Desk</b> \u2014 "
+                               "Top stocks scan ho rahe hain (30-60 sec)...")
+            import nse as nse_mod
+            self.send(chat_id, nse_mod.report())
+        except Exception:
+            log.exception("cmd_nse fail")
+            self.send(chat_id, "\u26a0\ufe0f NSE data nahi mila \u2014 "
+                               "thodi der baad try karo.")
+
     def cmd_gold(self, chat_id):
         """Gold + Silver metals desk (Yahoo hourly data)."""
         try:
@@ -680,27 +717,35 @@ class CryptoBot:
             except Exception:
                 log.exception("majors watch fail")
 
-            # ---- GOLD/SILVER signals (har ghante, alert 12h gap) ----
+            # ---- METALS + FX + NSE signals (recorded -> win/loss cards auto) ----
             try:
+                import forex as forex_mod
                 import metals as metals_mod
-                msigs = metals_mod.scan_setups()
-                strong = [s for s in msigs if s.get("tier") in ("A+", "A")]
-                if strong:
-                    mal = storage.get_state().get("metal_alerts", {})
-                    bucket = time.strftime("%Y%m%d%H")
-                    for s in strong:
-                        key = f"{s['symbol']}_{s['side']}"
-                        if mal.get(key, "") == bucket:
-                            continue
-                        mal[key] = bucket
-                        storage.set_state("metal_alerts", mal)
-                        self.post_channel(
-                            "\U0001f6a8 <b>METALS SIGNAL!</b>\n"
-                            + metals_mod.card(s))
-                        log.info("Metal signal post: %s %s (%s)",
-                                 s["symbol"], s["side"], s["tier"])
+                import nse as nse_mod
+                pool = (metals_mod.scan_setups() + forex_mod.scan_setups()
+                        + nse_mod.scan_setups())
+                strong = [s for s in pool if s.get("tier") in ("A+", "A")]
+                headers = {"METALS": "\U0001f6a8 \U0001f947\U0001f948 <b>METALS SIGNAL!</b>",
+                           "FX": "\U0001f6a8 \U0001f4b1 <b>FX SIGNAL!</b>",
+                           "NSE": "\U0001f6a8 \U0001f1ee\U0001f1f3 <b>NSE SIGNAL!</b>"}
+                posted = 0
+                for s in strong[:3]:   # max 3 naye/hour (spam-safe)
+                    kind = s.get("kind", "FX")
+                    new_s, _ = signals_mod.record_setups(
+                        [dict(s, kind=kind)], kind=kind)
+                    if not new_s:
+                        continue
+                    cardmod = (metals_mod if kind == "METALS"
+                               else forex_mod if kind == "FX" else nse_mod)
+                    self.post_channel(headers.get(kind, "")
+                                      + "\n" + cardmod.card(s))
+                    posted += 1
+                    time.sleep(0.5)
+                if posted:
+                    log.info("Multi-asset signals posted: %d "
+                             "(metals/fx/nse)", posted)
             except Exception:
-                log.exception("metals scan fail")
+                log.exception("multi-asset scan fail")
 
             # ---- TOP OPPORTUNITIES guarantee (6h gap — HAMESHA kuch actionable)
             try:
@@ -708,8 +753,12 @@ class CryptoBot:
                 if time.time() - st_state.get("last_top_post", 0) >= 6 * 3600:
                     pool = futures_mod.best_setups(mode, max_n=3)
                     try:
+                        import forex as forex_mod2
                         import metals as metals_mod2
-                        pool = pool + metals_mod2.scan_setups()
+                        import nse as nse_mod2
+                        pool = (pool + metals_mod2.scan_setups()
+                                + forex_mod2.scan_setups()
+                                + nse_mod2.scan_setups(batch=10))
                     except Exception:
                         pass
                     pool.sort(key=lambda x: x.get("conv", 0), reverse=True)
