@@ -34,7 +34,7 @@ def candles(sym, interval="1h", rng="1mo"):
         ts = res.get("timestamp") or []
         closes = res["indicators"]["quote"][0]["close"]
         return [[t * 1000, c] for t, c in zip(ts, closes) if c]
-    except (requests.RequestException, ValueError, KeyError, IndexError):
+    except (requests.RequestException, ValueError, KeyError, IndexError, TypeError):
         return []
 
 
@@ -54,7 +54,7 @@ def fetch_pair(sym, ttl=900):
         closes = [x for x in q["close"] if x]
         highs = [x for x in q["high"] if x]
         lows = [x for x in q["low"] if x]
-    except (requests.RequestException, ValueError, KeyError, IndexError):
+    except (requests.RequestException, ValueError, KeyError, IndexError, TypeError):
         pass
     if len(closes) < 60:
         _cache[sym] = (None, time.time())

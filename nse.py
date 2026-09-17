@@ -73,7 +73,7 @@ def candles(sym, interval="1d", rng="1y"):
         ts = res.get("timestamp") or []
         closes = res["indicators"]["quote"][0]["close"]
         return [[t * 1000, c] for t, c in zip(ts, closes) if c]
-    except (requests.RequestException, ValueError, KeyError, IndexError):
+    except (requests.RequestException, ValueError, KeyError, IndexError, TypeError):
         return []
 
 
@@ -93,7 +93,7 @@ def fetch_stock(sym, ttl=3600):
         closes = [x for x in q["close"] if x]
         highs = [x for x in q["high"] if x]
         lows = [x for x in q["low"] if x]
-    except (requests.RequestException, ValueError, KeyError, IndexError):
+    except (requests.RequestException, ValueError, KeyError, IndexError, TypeError):
         pass
     if len(closes) < 120:
         _cache[sym] = (None, time.time())

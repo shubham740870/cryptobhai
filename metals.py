@@ -47,7 +47,7 @@ def fetch_metal(sym, ttl=900):
             lows = [x for x in q["low"] if x is not None]
             if closes:
                 break
-        except (requests.RequestException, ValueError, KeyError, IndexError):
+        except (requests.RequestException, ValueError, KeyError, IndexError, TypeError):
             continue
     if len(closes) < 60:
         _cache[sym] = (None, time.time())
@@ -88,7 +88,7 @@ def candles(sym, interval="1h", rng="3mo"):
         ts = res.get("timestamp") or []
         closes = res["indicators"]["quote"][0]["close"]
         return [[t * 1000, c] for t, c in zip(ts, closes) if c]
-    except (requests.RequestException, ValueError, KeyError, IndexError):
+    except (requests.RequestException, ValueError, KeyError, IndexError, TypeError):
         return []
 
 

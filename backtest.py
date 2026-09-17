@@ -47,7 +47,7 @@ def fetch_daily(sym, rng="2y"):
                    if c and h and l]
             if out:
                 return out
-        except (requests.RequestException, ValueError, KeyError, IndexError):
+        except (requests.RequestException, ValueError, KeyError, IndexError, TypeError):
             continue
     return []
 
