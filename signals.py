@@ -64,6 +64,11 @@ def record_setups(setups, kind="SPOT"):
         d["list"].append(sig)
         d["posted"][tag] = now
         new.append(sig)
+        try:   # sheet 'Signals Log' me bhi (fire-and-forget)
+            import journal as _jr
+            _jr.sheet_log_signal(sig)
+        except Exception:
+            pass
     # cleanup: 60 din purane closed hatao
     cutoff = now - 60 * 86400
     d["list"] = [s for s in d["list"]
@@ -266,3 +271,76 @@ def external_hist(sig, days=90):
         return {"prices": pts}
     except Exception:
         return None
+
+def exit_alerts(open_sigs=None, min_gap=3 * 3600):
+    """Open signals pe PRO exit-logic — bich me close/trail ke alerts.
+
+    Rules (pro traders jaise):
+      TP_NEAR  — TP1 ke 15% door tak aa gaya (book profit ka time)
+      GIVEBACK — profit 0.6R+ tha, ab 0.15R se neeche (trail/close!)
+      SL_NEAR  — 0.75R loss ho gaya (SL touch hone se pehle decision)
+    Har alert 3h gap se zyada repeat nahi hota (state me dedupe).
+    Returns [{sig, event, msg, price, pnl_r}]
+    """
+    import storage as _storage
+    import config as _config
+    d = _load()
+    now = time.time()
+    if open_sigs is None:
+        open_sigs = [s for s in d["list"]
+                     if s.get("status") in ("OPEN", "T1_HIT")]
+    markets = analyzer.fetch_markets(_config.DEFAULT_MODE)
+    by_id = {c["id"]: c for c in markets}
+    alerts = []
+    state = _storage.get_state()
+    changed = False
+    for s in open_sigs:
+        kind = s.get("kind", "SPOT")
+        if kind in EXT_KINDS:
+            price = _live_external(s) or s.get("last_price")
+        else:
+            coin = by_id.get(s.get("id"))
+            price = coin["current_price"] if coin else s.get("last_price")
+        if not price:
+            continue
+        side = s.get("side", "LONG")
+        entry = s.get("entry") or price
+        sl = s.get("sl") or entry
+        t1 = s.get("t1") or entry
+        risk = abs(entry - sl) or entry * 0.02
+        move = (price - entry) if side == "LONG" else (entry - price)
+        pnl_r = move / max(risk, 1e-9)
+        best = max(float(s.get("best_r") or 0.0), pnl_r)
+        if best != s.get("best_r"):
+            s["best_r"] = round(best, 3)
+            changed = True
+        s["last_price"] = price
+        s["pnl_pct"] = round(move / entry * 100, 2)
+
+        events = []
+        dist_t1 = ((t1 - price) / (t1 - entry) if side == "LONG"
+                   else (price - t1) / (entry - t1))
+        if 0 < dist_t1 <= 0.15:
+            events.append(("TP_NEAR",
+                           "\U0001f3af TP1 ke bahut kareeb \u2014 profit book "
+                           "karne ka time!"))
+        if best >= 0.6 and pnl_r <= 0.15:
+            events.append(("GIVEBACK",
+                           "\U0001f512 Profit hat raha hai \u2014 trail karo "
+                           "ya close karo!"))
+        if pnl_r <= -0.75:
+            events.append(("SL_NEAR",
+                           "\U0001f6d1 SL ke kareeb \u2014 ab exit ka socho!"))
+        for ev, msg in events:
+            k = f"exit_{s.get('key', '')}_{ev}"
+            if now - float(state.get(k, 0)) < min_gap:
+                continue
+            state[k] = now
+            alerts.append(dict(sig=s, event=ev, msg=msg, price=price,
+                               pnl_r=pnl_r))
+    if changed:
+        _save(d)
+    for k, v in state.items():
+        if k.startswith("exit_"):
+            _storage.set_state(k, v)
+    return alerts

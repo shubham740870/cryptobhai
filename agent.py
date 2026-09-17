@@ -160,6 +160,38 @@ def fast_loop():
 
 
 # ---------------------------------------------------------------------------
+# Track mode (*/5 cron) — near-real-time open-signal monitoring (FREE)
+# ---------------------------------------------------------------------------
+
+def track_loop(budget_s=200, interval=60):
+    """Open signals ko har minute check karo (run ke andar 3-4 min budget).
+
+    Har Actions run (5-min cron) me: check_signals (T1/TP/SL hits) +
+    exit_alerts (TP near / profit giveback / SL near) — turant post.
+    """
+    import time as _t
+    from bot import CryptoBot
+
+    bot = CryptoBot(config.TELEGRAM_TOKEN)
+    deadline = _t.time() + budget_s
+    while True:
+        try:
+            updates, open_sigs = signals_mod.check_signals(config.DEFAULT_MODE)
+            if updates:
+                bot.publish_signal_updates(updates)
+                log.info("track: %d signal updates", len(updates))
+            alerts = signals_mod.exit_alerts(open_sigs)
+            for a in alerts:
+                bot.publish_exit_alert(a)
+        except Exception:
+            log.exception("track cycle fail")
+        if _t.time() >= deadline:
+            break
+        _t.sleep(interval)
+    log.info("track loop done")
+
+
+# ---------------------------------------------------------------------------
 # Run-once mode (GitHub Actions / cron ke liye) — ek cycle chalao aur exit
 # ---------------------------------------------------------------------------
 
@@ -254,6 +286,24 @@ def run_once():
                 log.info("journal: %s", err)
         except Exception:
             log.exception("journal fail")
+
+    # 2c) NSE opening post (9 IST me pehla run — din me ek baar)
+    if now.hour == 9 and storage.get_state().get("last_nse_open") != today:
+        try:
+            import nse as nse_mod
+            strong = nse_mod.scan_setups(batch=12)
+            lines = ["\U0001f1ee\U0001f1f3 <b>NSE OPEN \u2014 Aaj Ka Scan</b>", ""]
+            for s in strong[:2]:
+                lines.append(nse_mod.card(s))
+                lines.append("")
+            if len(lines) < 4:
+                lines.append("\U0001f44d Koi strong setup nahi \u2014 patience best.")
+            lines.append("#NSE #StocksIndia #MarketOpen")
+            bot.post_channel("\n".join(lines))
+            storage.set_state("last_nse_open", today)
+            log.info("NSE open post (%d setups)", len(strong[:2]))
+        except Exception:
+            log.exception("nse open fail")
 
     # 3) Daily update (din me ek baar)
     if now.hour >= config.DAILY_HOUR_IST and state.get("last_daily") != today:
@@ -440,6 +490,8 @@ def main():
                     help="ek analysis cycle chalao aur exit (GitHub Actions ke liye)")
     ap.add_argument("--fast", action="store_true",
                     help="5-min fast scanner mode (VPS/Termux ke liye 24/7 loop)")
+    ap.add_argument("--track", action="store_true",
+                    help="open-signal monitor (5-min Actions cron ke liye)")
     ap.add_argument("--selftest", action="store_true")
     args = ap.parse_args()
 
@@ -450,6 +502,11 @@ def main():
         logging.basicConfig(level=logging.INFO,
                             format="%(asctime)s %(levelname)s %(name)s: %(message)s")
         run_once()
+        return
+    if args.track:
+        logging.basicConfig(level=logging.INFO,
+                            format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+        track_loop()
         return
     if args.fast:
         logging.basicConfig(level=logging.INFO,

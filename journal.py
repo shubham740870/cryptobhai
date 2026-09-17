@@ -285,3 +285,43 @@ def sheet_push_prices(entries, markets):
         return r.status_code == 200 and "OK" in r.text
     except requests.RequestException:
         return False
+
+def sheet_log_signal(sig):
+    """Naya signal -> sheet 'Signals Log' tab (fire-and-forget)."""
+    url = (getattr(config, "SHEET_WEBAPP_URL", "") or "").strip()
+    if not url or not sig:
+        return False
+    params = {
+        "action": "signal",
+        "key": sig.get("key", ""),
+        "kind": sig.get("kind", "CRYPTO"),
+        "sym": sig.get("sym", ""),
+        "side": sig.get("side", "LONG"),
+        "tier": str(sig.get("tier") or sig.get("confidence") or ""),
+        "entry": sig.get("entry", ""),
+        "sl": sig.get("sl", ""),
+        "t1": sig.get("t1", ""),
+        "t2": sig.get("t2", ""),
+        "ts": sig.get("ts", ""),
+    }
+    try:
+        r = _session.get(url, params=params, timeout=12)
+        return r.status_code == 200
+    except requests.RequestException:
+        return False
+
+
+def sheet_log_result(key, status, exit_price, pnl_pct):
+    """Signal result (WIN/LOSS/EXIT) -> sheet row update."""
+    url = (getattr(config, "SHEET_WEBAPP_URL", "") or "").strip()
+    if not url or not key:
+        return False
+    try:
+        r = _session.get(url, params={
+            "action": "signalresult", "key": key, "status": status,
+            "exit": round(exit_price, 6) if exit_price else "",
+            "pnl": round(pnl_pct, 2) if pnl_pct is not None else "",
+        }, timeout=12)
+        return r.status_code == 200
+    except requests.RequestException:
+        return False

@@ -278,6 +278,15 @@ class CryptoBot:
                 log.exception("result_chart fail: %s", s["sym"])
             text = reports.signal_result_text(s, u["event"], u["pnl_pct"])
             self.post_channel(text, photo=path)
+            try:   # sheet me result update (Signals Log)
+                import journal as _jr
+                st = {"CLOSED_TP2": "\u2705 WIN TP2", "CLOSED_SL": "\u274c LOSS SL",
+                      "T1_HIT": "\U0001f3af TP1 HIT"}.get(u["event"], u["event"])
+                _jr.sheet_log_result(s.get("key", ""), st,
+                                     s.get("last_price") or s.get("entry", 0),
+                                     u.get("pnl_pct") or 0)
+            except Exception:
+                pass
             for admin in storage.get_state().get("admins", []):
                 self.send(admin, text)
             time.sleep(0.5)
@@ -535,7 +544,8 @@ class CryptoBot:
                 log.exception("candle_chart fail, line chart pe fallback")
                 path = charts.trade_chart(a, hist)
             cap = (reports.trade_caption(dict(a, kind="FUTURES"))
-                   + futures_mod.funding_note(a["symbol"]))
+                   + futures_mod.funding_note(a["symbol"])
+                   + "\n\n" + self._tags("FUTURES", a.get("symbol", "")))
             if also_chat:
                 self.send_photo(also_chat, path, cap)
             self.post_channel(cap, photo=path)
@@ -628,6 +638,38 @@ class CryptoBot:
             return
         markets = analyzer.fetch_markets(self._mode(chat_id))
         self.send(chat_id, journal_mod.journal_report(entries, markets))
+
+    TAGS = {
+        "METALS": "#Gold #Silver #XAUUSD #XAGUSD #Trading \U0001f947",
+        "FX": "#GBPUSD #EURUSD #Forex #FXSignals \U0001f4b1",
+        "NSE": "#NSE #Stocks #India #SwingTrades \U0001f1ee\U0001f1f3",
+        "FUTURES": "#Crypto #Altcoins #Futures \U0001f4b9",
+        "SPOT": "#Crypto #Bitcoin #Signals",
+    }
+
+    def _tags(self, kind, sym=""):
+        base = self.TAGS.get(kind, self.TAGS["SPOT"])
+        s = (sym or "").upper()
+        extra = f" #{s}" if s and f"#{s}" not in base else ""
+        return base + extra
+
+    def publish_exit_alert(self, a):
+        """Bich-me-exit decision alert (TP near / giveback / SL near)."""
+        s = a["sig"]
+        kind = s.get("kind", "SPOT")
+        text = (
+            f"\u26a0\ufe0f <b>EXIT ALERT</b> \u2014 {a['msg']}\n"
+            f"<b>{s.get('sym', '')} {s.get('side', '')}</b> ({kind})\n"
+            f"Entry {analyzer.fmt_price(s.get('entry', 0))} \u2192 Abhi "
+            f"{analyzer.fmt_price(a['price'])}\n"
+            f"P&L: <b>{a['pnl_r']:+.2f}R</b> "
+            f"({s.get('pnl_pct', 0):+.2f}%)\n"
+            f"<i>Decide karo \u2014 discipline &gt; hope. "
+            f"{self._tags(kind, s.get('sym', ''))}</i>")
+        self.post_channel(text)
+        self._notify_owner(text)
+        log.info("Exit alert: %s %s (%.2fR)",
+                 s.get("sym"), a["event"], a["pnl_r"])
 
     def cmd_fx(self, chat_id):
         """GBP/USD + EUR/USD FX desk."""
@@ -738,7 +780,8 @@ class CryptoBot:
                     cardmod = (metals_mod if kind == "METALS"
                                else forex_mod if kind == "FX" else nse_mod)
                     self.post_channel(headers.get(kind, "")
-                                      + "\n" + cardmod.card(s))
+                                      + "\n" + cardmod.card(s)
+                                      + "\n\n" + self._tags(kind, s.get("sym", "")))
                     posted += 1
                     time.sleep(0.5)
                 if posted:
@@ -781,6 +824,7 @@ class CryptoBot:
                                 f"<i>({html.escape(str(s.get('name', '')))})</i>")
                         lines.append("\n\u26a0\ufe0f Educational levels \u2014 "
                                      "DYOR, SL ke bina trade nahi.")
+                        lines.append(self._tags("FUTURES"))
                         self.post_channel("\n".join(lines))
                         storage.set_state("last_top_post", time.time())
                         log.info("Top opportunities post: %d setups",

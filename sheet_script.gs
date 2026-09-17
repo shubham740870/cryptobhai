@@ -34,6 +34,7 @@ function buildAll() {
   buildStats(ss);
   buildRiskCalc(ss);
   formatTradeLog(ss);
+  buildSignalsLog(ss);
   tidyOldTabs(ss);
 }
 
@@ -327,9 +328,27 @@ function buildRiskCalc(ss) {
   f.getRange(11, 1, 1, 3).setBackground(COLORS.greenBg);
 }
 
+// Bot ke saare auto-signals ka log (har asset class)
+function buildSignalsLog(ss) {
+  var sh = ss.getSheetByName("Signals Log") || ss.insertSheet("Signals Log", 2);
+  if (sh.getLastRow() < 1) {
+    sh.getRange(1, 1, 1, 14).setValues([[
+      "Key", "Date", "Kind", "Symbol", "Side", "Tier", "Entry", "SL",
+      "TP1", "TP2", "Status", "Exit Price", "P&L %", "Posted"
+    ]]);
+    sh.getRange(1, 1, 1, 14)
+      .setBackground(COLORS.bg).setFontColor(COLORS.fg)
+      .setFontSize(10).setFontWeight("bold");
+    sh.setFrozenRows(1);
+    var w = [150, 90, 80, 90, 60, 55, 90, 90, 90, 90, 90, 90, 80, 90];
+    for (var i = 0; i < w.length; i++) sh.setColumnWidth(i + 1, w[i]);
+  }
+}
+
 // Purane orphan tabs clean karo (khali ya sirf-header wale — data kabhi nahi)
 function tidyOldTabs(ss) {
-  var keep = { "Dashboard": 1, "Trade Log": 1, "Stats": 1, "Risk Calc": 1 };
+  var keep = { "Dashboard": 1, "Trade Log": 1, "Stats": 1, "Risk Calc": 1,
+               "Signals Log": 1 };
   var sheets = ss.getSheets();
   for (var i = sheets.length - 1; i >= 0; i--) {
     var s = sheets[i];
@@ -348,6 +367,46 @@ function tidyOldTabs(ss) {
  * Trade Log ke O column (Live Price) me price daal dega jisse
  * P&L formulas live calc karein (exit bhara ho to override nahi karega).
  */
+// Naya signal -> Signals Log me append (duplicate key skip)
+function logSignal(p) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sh = ss.getSheetByName("Signals Log");
+  if (!sh || !p || !p.key) return "no key";
+  var last = Math.max(sh.getLastRow(), 1);
+  var keys = last > 1 ? sh.getRange(2, 1, last - 1, 1).getValues() : [];
+  for (var i = 0; i < keys.length; i++) {
+    if (String(keys[i][0]) === String(p.key)) return "dup";
+  }
+  var d = new Date();
+  var date = Utilities.formatDate(d, Session.getScriptTimeZone(), "yyyy-MM-dd HH:mm");
+  sh.appendRow([
+    p.key, date, p.kind || "CRYPTO", String(p.sym || "").toUpperCase(),
+    p.side || "LONG", p.tier || "", Number(p.entry) || "", Number(p.sl) || "",
+    Number(p.t1) || "", Number(p.t2) || "", "⏳ OPEN", "", "", ""
+  ]);
+  return "logged";
+}
+
+// Signal result update -> row dhundo, Status/Exit/P&L bharo
+function logSignalResult(p) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sh = ss.getSheetByName("Signals Log");
+  if (!sh || !p || !p.key) return "no key";
+  var last = Math.max(sh.getLastRow(), 1);
+  if (last < 2) return "empty";
+  var keys = sh.getRange(2, 1, last - 1, 1).getValues();
+  for (var i = 0; i < keys.length; i++) {
+    if (String(keys[i][0]) === String(p.key)) {
+      var row = i + 2;
+      if (p.status) sh.getRange(row, 11).setValue(p.status);
+      if (p.exit) sh.getRange(row, 12).setValue(Number(p.exit));
+      if (p.pnl !== undefined && p.pnl !== "") sh.getRange(row, 13).setValue(Number(p.pnl));
+      return "updated";
+    }
+  }
+  return "notfound";
+}
+
 function updateLivePrices(pricesStr) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sh = ss.getSheetByName("Trade Log");
@@ -384,6 +443,14 @@ function handle(e) {
     if (action === "build") {
       buildAll();
       return ContentService.createTextOutput("OK: built");
+    }
+    if (action === "signal") {
+      var msg2 = logSignal(e.parameter);
+      return ContentService.createTextOutput("OK: " + msg2);
+    }
+    if (action === "signalresult") {
+      var msg3 = logSignalResult(e.parameter);
+      return ContentService.createTextOutput("OK: " + msg3);
     }
     return ContentService.createTextOutput("OK: ping");
   } catch (err) {
