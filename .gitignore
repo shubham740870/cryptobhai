@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+data/cache/
+data/reports/
+data/nse_state.json
+*.zip
