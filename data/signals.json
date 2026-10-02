@@ -26,8 +26,8 @@
    "hit_t1": false,
    "hit_t2": false,
    "hit_sl": false,
-   "last_price": 84813,
-   "pnl_pct": 0.7490292741050933,
+   "last_price": 86501,
+   "pnl_pct": 2.754197838059787,
    "result_pct": null,
    "closed_ts": null
   },
@@ -57,8 +57,8 @@
    "hit_t1": false,
    "hit_t2": false,
    "hit_sl": false,
-   "last_price": 2705.38,
-   "pnl_pct": 0.4732951621488013,
+   "last_price": 2743.22,
+   "pnl_pct": 1.8786095686039683,
    "result_pct": null,
    "closed_ts": null
   },
@@ -88,8 +88,8 @@
    "hit_t1": false,
    "hit_t2": false,
    "hit_sl": false,
-   "last_price": 118.42,
-   "pnl_pct": 0.5520774835250948,
+   "last_price": 121.85,
+   "pnl_pct": 3.464538434111907,
    "result_pct": null,
    "closed_ts": null
   },
@@ -146,14 +146,14 @@
    "lev": 1,
    "liq": 0,
    "confidence": "HIGH",
-   "status": "OPEN",
+   "status": "CLOSED_SL",
    "hit_t1": false,
    "hit_t2": false,
-   "hit_sl": false,
-   "last_price": 61.435001373291016,
-   "pnl_pct": -0.7874653889220018,
-   "result_pct": null,
-   "closed_ts": null
+   "hit_sl": true,
+   "last_price": 62.22999954223633,
+   "pnl_pct": -2.0917031792000844,
+   "result_pct": -1.221195162790974,
+   "closed_ts": 1790945189.7404134
   },
   {
    "key": "GBPUSD_FX_1790868422",
@@ -274,8 +274,8 @@
    "hit_t1": false,
    "hit_t2": false,
    "hit_sl": false,
-   "last_price": 0.2530524911272812,
-   "pnl_pct": 0.0,
+   "last_price": 0.255814,
+   "pnl_pct": 1.0912790703687705,
    "result_pct": null,
    "closed_ts": null
   },
@@ -305,8 +305,8 @@
    "hit_t1": false,
    "hit_t2": false,
    "hit_sl": false,
-   "last_price": 0.09570137597633672,
-   "pnl_pct": 0.0,
+   "last_price": 0.096856,
+   "pnl_pct": 1.2064863351063697,
    "result_pct": null,
    "closed_ts": null
   },
@@ -336,8 +336,8 @@
    "hit_t1": false,
    "hit_t2": false,
    "hit_sl": false,
-   "last_price": 0.2221351723142271,
-   "pnl_pct": 0.0,
+   "last_price": 0.224531,
+   "pnl_pct": 1.0785449511722616,
    "result_pct": null,
    "closed_ts": null
   },
@@ -367,8 +367,8 @@
    "hit_t1": false,
    "hit_t2": false,
    "hit_sl": false,
-   "last_price": 1.5164632621642353,
-   "pnl_pct": 0.0,
+   "last_price": 1.54,
+   "pnl_pct": 1.5520809783531468,
    "result_pct": null,
    "closed_ts": null
   },
@@ -402,6 +402,37 @@
    "pnl_pct": 0.0,
    "result_pct": null,
    "closed_ts": null
+  },
+  {
+   "key": "RAIN_FUTURES_1790945288",
+   "last_change": "2026-10-02 12:43",
+   "sym": "RAIN",
+   "name": "Rain",
+   "id": "rain",
+   "kind": "FUTURES",
+   "side": "SHORT",
+   "mode": "aggressive",
+   "ts": "2026-10-02 12:48 IST",
+   "epoch": 1790945288.2114208,
+   "entry": 0.011624456779151998,
+   "entry_lo": 0.011508212211360478,
+   "entry_hi": 0.011740701346943518,
+   "t1": 0.009592846727829289,
+   "t2": 0.008238440026947484,
+   "sl": 0.012978863480033803,
+   "risk_pct": 11.651354782538146,
+   "score": 36.3,
+   "lev": 5,
+   "liq": 0.013809854653632573,
+   "confidence": "MEDIUM",
+   "status": "OPEN",
+   "hit_t1": false,
+   "hit_t2": false,
+   "hit_sl": false,
+   "last_price": 0.011624456779151998,
+   "pnl_pct": 0.0,
+   "result_pct": null,
+   "closed_ts": null
   }
  ],
  "posted": {
@@ -417,6 +448,7 @@
   "DOGE_FUTURES": 1790920242.9543643,
   "XLM_FUTURES": 1790920242.9543643,
   "XRP_FUTURES": 1790920242.9543643,
-  "TCS_NSE": 1790920355.1525319
+  "TCS_NSE": 1790920355.1525319,
+  "RAIN_FUTURES": 1790945288.2114208
  }
 }
