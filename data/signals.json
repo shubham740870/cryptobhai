@@ -433,6 +433,37 @@
    "pnl_pct": 0.0,
    "result_pct": null,
    "closed_ts": null
+  },
+  {
+   "key": "HYPE_FUTURES_1790982237",
+   "last_change": "2026-10-02 22:58",
+   "sym": "HYPE",
+   "name": "Hyperliquid",
+   "id": "hyperliquid",
+   "kind": "FUTURES",
+   "side": "LONG",
+   "mode": "aggressive",
+   "ts": "2026-10-02 23:03 IST",
+   "epoch": 1790982237.122264,
+   "entry": 87.93441128448254,
+   "entry_lo": 87.05506717163772,
+   "entry_hi": 88.81375539732736,
+   "t1": 98.8126197131354,
+   "t2": 106.06475866557065,
+   "sl": 80.68227233204729,
+   "risk_pct": 8.24721385689768,
+   "score": 59.4,
+   "lev": 5,
+   "liq": 71.40274196299983,
+   "confidence": "MEDIUM",
+   "status": "OPEN",
+   "hit_t1": false,
+   "hit_t2": false,
+   "hit_sl": false,
+   "last_price": 87.93441128448254,
+   "pnl_pct": 0.0,
+   "result_pct": null,
+   "closed_ts": null
   }
  ],
  "posted": {
@@ -449,6 +480,7 @@
   "XLM_FUTURES": 1790920242.9543643,
   "XRP_FUTURES": 1790920242.9543643,
   "TCS_NSE": 1790920355.1525319,
-  "RAIN_FUTURES": 1790945288.2114208
+  "RAIN_FUTURES": 1790945288.2114208,
+  "HYPE_FUTURES": 1790982237.122264
  }
 }
