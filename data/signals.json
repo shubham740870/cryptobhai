@@ -26,8 +26,8 @@
    "hit_t1": false,
    "hit_t2": false,
    "hit_sl": false,
-   "last_price": 86501,
-   "pnl_pct": 2.754197838059787,
+   "last_price": 85022,
+   "pnl_pct": 0.9972995524620429,
    "result_pct": null,
    "closed_ts": null
   },
@@ -57,8 +57,8 @@
    "hit_t1": false,
    "hit_t2": false,
    "hit_sl": false,
-   "last_price": 2743.22,
-   "pnl_pct": 1.8786095686039683,
+   "last_price": 2695.7,
+   "pnl_pct": 0.11379612793932625,
    "result_pct": null,
    "closed_ts": null
   },
@@ -88,8 +88,8 @@
    "hit_t1": false,
    "hit_t2": false,
    "hit_sl": false,
-   "last_price": 121.85,
-   "pnl_pct": 3.464538434111907,
+   "last_price": 120.98,
+   "pnl_pct": 2.725809271718174,
    "result_pct": null,
    "closed_ts": null
   },
@@ -274,8 +274,8 @@
    "hit_t1": false,
    "hit_t2": false,
    "hit_sl": false,
-   "last_price": 0.255814,
-   "pnl_pct": 1.0912790703687705,
+   "last_price": 0.24491,
+   "pnl_pct": -3.2177083462046023,
    "result_pct": null,
    "closed_ts": null
   },
@@ -305,8 +305,8 @@
    "hit_t1": false,
    "hit_t2": false,
    "hit_sl": false,
-   "last_price": 0.096856,
-   "pnl_pct": 1.2064863351063697,
+   "last_price": 0.093059,
+   "pnl_pct": -2.761063724925,
    "result_pct": null,
    "closed_ts": null
   },
@@ -336,8 +336,8 @@
    "hit_t1": false,
    "hit_t2": false,
    "hit_sl": false,
-   "last_price": 0.224531,
-   "pnl_pct": 1.0785449511722616,
+   "last_price": 0.215578,
+   "pnl_pct": -2.9518838668878145,
    "result_pct": null,
    "closed_ts": null
   },
@@ -367,8 +367,8 @@
    "hit_t1": false,
    "hit_t2": false,
    "hit_sl": false,
-   "last_price": 1.54,
-   "pnl_pct": 1.5520809783531468,
+   "last_price": 1.5,
+   "pnl_pct": -1.0856354106949893,
    "result_pct": null,
    "closed_ts": null
   },
@@ -425,14 +425,14 @@
    "lev": 5,
    "liq": 0.013809854653632573,
    "confidence": "MEDIUM",
-   "status": "OPEN",
+   "status": "CLOSED_SL",
    "hit_t1": false,
    "hit_t2": false,
-   "hit_sl": false,
-   "last_price": 0.011624456779151998,
-   "pnl_pct": 0.0,
-   "result_pct": null,
-   "closed_ts": null
+   "hit_sl": true,
+   "last_price": 0.01316915,
+   "pnl_pct": -13.288304565064468,
+   "result_pct": -11.651354782538133,
+   "closed_ts": 1791097218.245542
   },
   {
    "key": "HYPE_FUTURES_1790982237",
@@ -460,8 +460,8 @@
    "hit_t1": false,
    "hit_t2": false,
    "hit_sl": false,
-   "last_price": 87.93441128448254,
-   "pnl_pct": 0.0,
+   "last_price": 89.8,
+   "pnl_pct": 2.1215684375050508,
    "result_pct": null,
    "closed_ts": null
   }
