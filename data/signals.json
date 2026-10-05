@@ -464,6 +464,37 @@
    "pnl_pct": 2.1215684375050508,
    "result_pct": null,
    "closed_ts": null
+  },
+  {
+   "key": "ICICIBANK_NSE_1791240392",
+   "last_change": "2026-10-05 22:41",
+   "sym": "ICICIBANK",
+   "name": "ICICIBANK",
+   "id": "nse-icicibank",
+   "kind": "NSE",
+   "side": "SHORT",
+   "mode": "aggressive",
+   "ts": "2026-10-05 22:46 IST",
+   "epoch": 1791240392.0689647,
+   "entry": 1310.5999755859375,
+   "entry_lo": 1306.6681756591797,
+   "entry_hi": 1314.5317755126953,
+   "t1": 1292.682508742127,
+   "t2": 1285.003594380494,
+   "sl": 1374.5909285995465,
+   "risk_pct": 4.882569373236878,
+   "score": 60,
+   "lev": 1,
+   "liq": 0,
+   "confidence": "MEDIUM",
+   "status": "OPEN",
+   "hit_t1": false,
+   "hit_t2": false,
+   "hit_sl": false,
+   "last_price": 1310.5999755859375,
+   "pnl_pct": 0.0,
+   "result_pct": null,
+   "closed_ts": null
   }
  ],
  "posted": {
@@ -481,6 +512,7 @@
   "XRP_FUTURES": 1790920242.9543643,
   "TCS_NSE": 1790920355.1525319,
   "RAIN_FUTURES": 1790945288.2114208,
-  "HYPE_FUTURES": 1790982237.122264
+  "HYPE_FUTURES": 1790982237.122264,
+  "ICICIBANK_NSE": 1791240392.0689647
  }
 }
