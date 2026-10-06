@@ -557,6 +557,37 @@
    "pnl_pct": 0.0,
    "result_pct": null,
    "closed_ts": null
+  },
+  {
+   "key": "FIGR_HELOC_FUTURES_1791307095",
+   "last_change": "2026-10-06 17:13",
+   "sym": "FIGR_HELOC",
+   "name": "Figure Heloc",
+   "id": "figure-heloc",
+   "kind": "FUTURES",
+   "side": "LONG",
+   "mode": "aggressive",
+   "ts": "2026-10-06 17:18 IST",
+   "epoch": 1791307095.1603835,
+   "entry": 1.0166751136906853,
+   "entry_lo": 1.0065083625537785,
+   "entry_hi": 1.026841864827592,
+   "t1": 1.100550810570167,
+   "t2": 1.1564679418231545,
+   "sl": 0.9607579824376976,
+   "risk_pct": 5.5,
+   "score": 57.7,
+   "lev": 5,
+   "liq": 0.8255401923168365,
+   "confidence": "MEDIUM",
+   "status": "OPEN",
+   "hit_t1": false,
+   "hit_t2": false,
+   "hit_sl": false,
+   "last_price": 1.0166751136906853,
+   "pnl_pct": 0.0,
+   "result_pct": null,
+   "closed_ts": null
   }
  ],
  "posted": {
@@ -576,6 +607,7 @@
   "RAIN_FUTURES": 1791282646.344648,
   "HYPE_FUTURES": 1790982237.122264,
   "ICICIBANK_NSE": 1791240392.0689647,
-  "HDFCBANK_NSE": 1791282683.1534808
+  "HDFCBANK_NSE": 1791282683.1534808,
+  "FIGR_HELOC_FUTURES": 1791307095.1603835
  }
 }
