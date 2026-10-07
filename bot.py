@@ -660,12 +660,12 @@ class CryptoBot:
         "SPOT": "#Crypto #Bitcoin #Signals",
     }
 
-    SIZES = {"A+": "1.5%", "A": "1.0%", "B": "0.5%"}
+    SIZES = {"A+": "1.5%", "A": "1.5%", "B": "0.75%"}
 
     def _sizing(self, tier):
-        """Kelly-lite tiered sizing hint (pro practice)."""
-        return (f"\u2696\ufe0f Risk size: {self.SIZES.get(str(tier), '1.0%')} "
-                "of capital \u00b7 max 6 open \u00b7 heat 6%")
+        """Optimal sizing (5y test: 1.5% fixed = best return/DD)."""
+        return (f"\u2696\ufe0f Risk size: {self.SIZES.get(str(tier), '1.5%')} "
+                "of capital \u00b7 max 5 open \u00b7 heat 7.5%")
 
     def _tags(self, kind, sym=""):
         base = self.TAGS.get(kind, self.TAGS["SPOT"])

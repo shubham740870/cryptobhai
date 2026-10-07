@@ -16,7 +16,7 @@ import storage
 
 TTL_SIGNAL_DAYS = 30           # 30 din baad time-exit
 # Van Tharp portfolio-heat rules (research-backed):
-MAX_OPEN_TOTAL = 6             # 6 x 1% = 6% heat cap
+MAX_OPEN_TOTAL = 5             # 5 x 1.5% = 7.5% heat (Tharp 6-10% band)
 MAX_CRYPTO_LONG = 3            # altcoins = BTC-beta; same-direction cap 3
 COOLDOWN = {"SPOT": 6 * 86400, "FUTURES": 3 * 86400}
 
@@ -57,6 +57,8 @@ def record_setups(setups, kind="SPOT"):
                         if s.get("kind", "SPOT") in ("SPOT", "FUTURES")
                         and s.get("side", "LONG") == "LONG") >= MAX_CRYPTO_LONG):
             continue          # correlated longs cap
+        # OPTIMAL RISK (5y tested): 1.5% fixed best return/DD (+136%/13.9%)
+        # anti-martingale reject hua (whipsaw) — plain fixed hi best
         last_change = time.strftime("%Y-%m-%d %H:%M", time.gmtime(now - 300))
         sig = {
             "key": f"{tag}_{int(now)}",

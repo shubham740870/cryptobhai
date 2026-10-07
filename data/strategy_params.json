@@ -2,45 +2,105 @@
  "metals": {
   "params": {
    "sl_mult": 2.2,
-   "tp_mult": 3.0
+   "tp_mult": 3.0,
+   "rsi_filter": true,
+   "trend": "ema20_50",
+   "strategy": "trend_atr",
+   "min_conf": 4,
+   "rsi_band": [
+    35,
+    65
+   ],
+   "max_hold": 25
   },
   "factors": {
-   "mtf": true,
-   "season": true,
+   "mtf": false,
+   "season": false,
    "whale": false
+  },
+  "backtest": {
+   "WR": 58.8,
+   "sumR": 33.6,
+   "PF": 2.68,
+   "DD": 8.9
   }
  },
  "crypto": {
   "params": {
    "sl_mult": 2.0,
-   "tp_mult": 3.0
+   "tp_mult": 3.0,
+   "rsi_filter": true,
+   "trend": "ema50_200",
+   "strategy": "voltarget",
+   "min_conf": 4,
+   "rsi_band": [
+    35,
+    65
+   ],
+   "max_hold": 25
   },
   "factors": {
    "mtf": true,
    "season": true,
    "whale": true
+  },
+  "backtest": {
+   "WR": 57.7,
+   "sumR": 14.8,
+   "PF": 1.9,
+   "DD": 3.0
   }
  },
  "nse": {
   "params": {
    "sl_mult": 2.2,
-   "tp_mult": 2.0
+   "tp_mult": 3.0,
+   "rsi_filter": true,
+   "trend": "ema50_200",
+   "strategy": "rsi2",
+   "min_conf": 3,
+   "rsi_band": [
+    35,
+    65
+   ],
+   "max_hold": 15
   },
   "factors": {
    "mtf": false,
    "season": false,
    "whale": false
+  },
+  "backtest": {
+   "WR": 47.3,
+   "sumR": 10.1,
+   "PF": 1.07,
+   "DD": 9.8
   }
  },
  "fx": {
   "params": {
    "sl_mult": 2.0,
-   "tp_mult": 2.0
+   "tp_mult": 2.0,
+   "rsi_filter": true,
+   "trend": "ema20_50",
+   "strategy": "turtle",
+   "min_conf": 4,
+   "rsi_band": [
+    35,
+    65
+   ],
+   "max_hold": 20
   },
   "factors": {
    "mtf": false,
    "season": false,
    "whale": false
+  },
+  "backtest": {
+   "WR": 52.4,
+   "sumR": 3.1,
+   "PF": 1.08,
+   "DD": 5.0
   }
  }
 }
