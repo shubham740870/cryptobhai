@@ -5,6 +5,8 @@ on:
   schedule:
     - cron: "23 * * * *"   # har ghante minute 23 pe (UTC)
   workflow_dispatch: {}     # Actions tab me "Run workflow" button
+  repository_dispatch:      # API se trigger (dispatch API 500-hiccup workaround)
+    types: [manual-scan]
 
 # State save karne ke liye write permission
 permissions:
