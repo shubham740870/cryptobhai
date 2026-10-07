@@ -305,6 +305,24 @@ def run_once():
         except Exception:
             log.exception("nse open fail")
 
+    # 2d) INVESTING PRO system (monthly picks + daily check + weekly research)
+    try:
+        import investing as inv_mod
+        if now.day == 1 and state.get("last_invest_monthly") != now.strftime("%Y-%m"):
+            inv_mod.monthly_rebalance(lambda t: bot.post_channel(t[:3900]))
+            storage.set_state("last_invest_monthly", now.strftime("%Y-%m"))
+            log.info("Investing: monthly rebalance post")
+        if now.weekday() == 5 and state.get("last_invest_weekly") !=                 now.strftime("%Y-W%U"):
+            inv_mod.weekly_deep_dive(lambda t: bot.post_channel(t[:3900]))
+            storage.set_state("last_invest_weekly", now.strftime("%Y-W%U"))
+            log.info("Investing: weekly deep research post")
+        if state.get("last_invest_daily") != today:
+            inv_mod.daily_check(lambda t: bot.post_channel(t[:3900]))
+            storage.set_state("last_invest_daily", today)
+            log.info("Investing: daily check post")
+    except Exception:
+        log.exception("investing pro fail")
+
     # 3) Daily update (din me ek baar)
     if now.hour >= config.DAILY_HOUR_IST and state.get("last_daily") != today:
         try:

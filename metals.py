@@ -108,6 +108,10 @@ def make_signal(m):
     tp_d = p["tp_mult"] * atr_v
     import masters as _masters
     side, tier = _masters.entry(m, p.get("strategy", "trend_atr"))
+    # METALS SHORTS OFF (ledger-lesson: secular gold bull me 3/5 losses
+    # short-side se; backtest edge bhi long-side tha). Girawat = patience.
+    if side == "SHORT":
+        side, tier = "LONG", "B"
     d = 1 if side == "LONG" else -1
     sl = px - d * sl_d
     t1 = px + d * tp_d * 0.7

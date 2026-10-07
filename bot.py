@@ -29,6 +29,8 @@ HELP_TEXT = (
     "🥇🥈 /gold — GOLD + SILVER (XAU/XAG) live signals 🔥\n"
     "💱 /fx — GBP/USD + EUR/USD forex signals\n"
     "🇮🇳 /nse — India Top-100 stocks scan (NIFTY 100)\n"
+    "📊 /invest — Model Portfolio (monthly picks + live P&L)\n"
+    "🔍 /research RELIANCE — Deep stock research (7 masters frameworks)\n"
     "🎬 /content — last winning trade ka video + caption (IG/YT)\n"
     "📒 /journal — Google Sheet trading journal ka live P&L\n"
     "🔥 /trending — Abhi kya trend me hai\n"
@@ -404,6 +406,10 @@ class CryptoBot:
             self.cmd_fx(chat_id)
         elif cmd in ("nse", "stocks"):
             self.cmd_nse(chat_id)
+        elif cmd == "invest":
+            self.cmd_invest(chat_id)
+        elif cmd == "research":
+            self.cmd_research(chat_id, args)
         elif cmd == "autoscan":
             self.cmd_autoscan(chat_id)
         elif cmd == "trending":
@@ -670,6 +676,41 @@ class CryptoBot:
         self._notify_owner(text)
         log.info("Exit alert: %s %s (%.2fR)",
                  s.get("sym"), a["event"], a["pnl_r"])
+
+    def cmd_invest(self, chat_id):
+        """Model portfolio status (InvestingPro-style)."""
+        try:
+            self.send(chat_id, "📊 <b>Model Portfolio</b> load ho raha hai...")
+            import investing as inv_mod
+            self.send(chat_id, inv_mod.status())
+        except Exception:
+            log.exception("cmd_invest fail")
+            self.send(chat_id, "⚠️ Portfolio data nahi mila — thodi der baad.")
+
+    def cmd_research(self, chat_id, args):
+        """On-demand deep research: /research RELIANCE"""
+        if not args:
+            self.send(chat_id, "🔍 Stock do: <code>/research RELIANCE</code>")
+            return
+        sym = args[0].upper().replace(".NS", "")
+        self.send(chat_id, f"🔍 <b>{sym}</b> ka deep research aa raha hai "
+                           "(fundamentals + 7 masters frameworks)...")
+        try:
+            import fundamentals as fund_mod
+            import masters_invest as mi
+            import nse as nse_mod
+            ta = nse_mod.fetch_stock(sym, ttl=300)
+            fund = fund_mod.get_fundamentals(sym)
+            if not ta or not fund:
+                self.send(chat_id, f"❌ {sym} ka data nahi mila (NSE listed "
+                                   "large-cap hi scan me hai).")
+                return
+            pro, parts, extras = mi.score_stock(ta["price"], fund, ta)
+            self.send(chat_id, mi.research_card(sym, ta["price"], fund, ta,
+                                                pro, parts, extras))
+        except Exception:
+            log.exception("cmd_research fail")
+            self.send(chat_id, "⚠️ Research fail — thodi der baad try karo.")
 
     def cmd_fx(self, chat_id):
         """GBP/USD + EUR/USD FX desk."""
