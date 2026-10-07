@@ -446,6 +446,9 @@ def deep_analyze(coin, hist, mode, trending_syms=frozenset()):
         "ch7": ch7, "ch30": ch30, "ch200": ch200,
         "rsi": rsi_now, "sma20": sma20_now, "sma50": sma50_now,
         "macd_hist": hist_now, "atr_pct": atr_pct * 100,
+        "vol_ratio_3d": (sum((hist.get("volumes") or [0] * 5)[-4:-1]) /
+                         max(sum((hist.get("volumes") or [0] * 25)[-24:-1]) / 21, 1))
+                        if hist.get("volumes") else None,
         "dip_from_high": dip_from_high, "hi30": hi30, "lo30": lo30,
         "vol_mcap": vol_mcap,
         "score": score, "verdict": verdict, "tags": tags, "reasons": reasons,

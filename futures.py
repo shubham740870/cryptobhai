@@ -11,6 +11,7 @@ import time
 
 import requests
 
+import alpha5
 import analyzer
 import config
 
@@ -127,14 +128,21 @@ def evaluate_setups(analyzed):
 
         # ---- LONG setup: A+ (full confluence) ya A (relaxed) ----
         # voltarget gate: blowoff vol me naya LONG nahi (v8 winner rule)
+        # 5y A/B: crypto +season+whale-vol => WR 49->84%, DD 7.5R->1R
         ap = a.get("atr_pct") or 0
         tier = None
+        mon = time.gmtime().tm_mon + 1
+        season_ok = mon in alpha5.CRYPTO_MONTHS
+        vol20 = a.get("vol_ratio_3d") or 1.0   # analyzer se (below)
+        whale_ok = vol20 >= 1.5
         if (a["score"] >= MIN_SCORE_LONG and s20 and px > s20
                 and macd_h > 0 and rsi < 74 and ap <= 8
+                and season_ok and whale_ok
                 and "parabolic" not in a.get("tags", [])):
             tier = "A+"
         elif (a["score"] >= 48 and s20 and px > s20
               and rsi < 78 and ap <= 10
+              and season_ok
               and "parabolic" not in a.get("tags", [])):
             tier = "A"
         if tier:

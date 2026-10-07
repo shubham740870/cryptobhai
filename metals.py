@@ -7,6 +7,7 @@ import time
 
 import requests
 
+import alpha5
 import backtest
 import indicators as ind
 
@@ -112,6 +113,10 @@ def make_signal(m):
     # short-side se; backtest edge bhi long-side tha). Girawat = patience.
     if side == "SHORT":
         side, tier = "LONG", "B"
+    # 5y A/B: seasonality filter PF 3.45 -> 4.12
+    if (not alpha5.season_ok("metals", time.gmtime().tm_mon + 1)
+            and side == "LONG"):
+        tier = "B"
     d = 1 if side == "LONG" else -1
     sl = px - d * sl_d
     t1 = px + d * tp_d * 0.7
