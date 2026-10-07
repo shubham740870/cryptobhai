@@ -19,7 +19,7 @@ DATA_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)),
 
 INSTRUMENTS = {
     "metals": ["GC=F", "SI=F"],
-    "fx": ["GBPUSD=X", "EURUSD=X"],
+    "fx": ["GBPUSD=X", "EURUSD=X", "USDJPY=X", "AUDUSD=X", "USDCAD=X"],
     "crypto": ["BTC-USD", "ETH-USD"],
     "nse": ["RELIANCE.NS", "^NSEI", "TCS.NS", "HDFCBANK.NS"],
 }

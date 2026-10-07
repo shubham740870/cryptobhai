@@ -17,24 +17,12 @@ UA = {"User-Agent": "Mozilla/5.0 (compatible; CryptoBhaiAgent/1.0)"}
 STATE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                           "data", "nse_state.json")
 
-# NIFTY 100 — India ke top 100 large caps
+# v16.2 (user-approved): rotating top-100 -> LOCKED CHAMPION-4.
+# 5y per-symbol test (dono 2.5y-halves positive): BHARTIARTL +22.5R, SBIN +15.2R,
+# MARUTI +8.1R, AXISBANK +5.4R. Baaki 96 stocks me drag tha (ITC -3.4R, RELIANCE -0.8R).
+# QUARTERLY RE-TEST (self-audit): koi gire to replace — nse.py ye line update karo.
 TICKERS = [
-    "RELIANCE", "TCS", "HDFCBANK", "ICICIBANK", "INFY", "HINDUNILVR", "ITC",
-    "SBIN", "BHARTIARTL", "KOTAKBANK", "LT", "AXISBANK", "BAJFINANCE",
-    "ASIANPAINT", "MARUTI", "SUNPHARMA", "TITAN", "ULTRACEMCO", "NESTLEIND",
-    "WIPRO", "ONGC", "NTPC", "POWERGRID", "M&M", "TATAMOTORS", "TATASTEEL",
-    "JSWSTEEL", "ADANIENT", "ADANIPORTS", "COALINDIA", "HCLTECH", "TECHM",
-    "DRREDDY", "CIPLA", "DIVISLAB", "APOLLOHOSP", "GRASIM", "SHREECEM",
-    "HINDALCO", "VEDL", "DLF", "PIDILITIND", "SIEMENS", "ABB", "EICHERMOT",
-    "HEROMOTOCO", "BAJAJ-AUTO", "TVSMOTOR", "MOTHERSON", "INDIGO", "BRITANNIA",
-    "DABUR", "GODREJCP", "MARICO", "BAJAJFINSV", "HDFCAMC", "SBILIFE",
-    "HDFCLIFE", "ICICIPRULI", "ICICIGI", "PFC", "RECLTD", "IOC", "BPCL",
-    "GAIL", "BANKINDIA", "PNB", "CANBK", "UNIONBANK", "INDIANB", "BANKBARODA",
-    "INDUSINDBK", "FEDERALBNK", "IDFCFIRSTB", "AUBANK", "LICI", "BEL", "HAL",
-    "MAZDOCK", "IRFC", "RVNL", "BHEL", "TATAPOWER", "ADANIENSOL", "ATGL",
-    "ADANIGREEN", "CONCOR", "UPL", "LTIM", "PERSISTENT", "COFORGE", "MPHASIS",
-    "OFSS", "KPITTECH", "TATAELXSI", "CUMMINSIND", "BOSCHLTD", "TORNTPOWER",
-    "NHPC", "SUZLON", "INDHOTEL", "TRENT", "JIOFIN", "HAVELLS", "VOLTAS",
+    "BHARTIARTL", "SBIN", "MARUTI", "AXISBANK",
 ]
 TICKERS = list(dict.fromkeys(TICKERS))   # dedupe, order preserve
 BATCH = 25

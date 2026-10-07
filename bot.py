@@ -27,8 +27,8 @@ HELP_TEXT = (
     "👑 /majors — BTC/ETH/SOL ka futures scan\n"
     "🎓 /pro btc — Professional desk analysis (structure/MTF/S-R/position size)\n"
     "🥇🥈 /gold — GOLD + SILVER (XAU/XAG) live signals 🔥\n"
-    "💱 /fx — GBP/USD + EUR/USD forex signals\n"
-    "🇮🇳 /nse — India Top-100 stocks scan (NIFTY 100)\n"
+    "💱 /fx — Top-5 majors: USD/JPY, GBP, EUR, AUD, CAD\n"
+    "🇮🇳 /nse — NSE Champion-4 (BHARTIARTL/SBIN/MARUTI/AXIS)\n"
     "📊 /invest — Model Portfolio (monthly picks + live P&L)\n"
     "🔍 /research RELIANCE — Deep stock research (7 masters frameworks)\n"
     "🎬 /content — last winning trade ka video + caption (IG/YT)\n"
@@ -742,7 +742,7 @@ class CryptoBot:
                                "thodi der baad try karo.")
 
     def cmd_nse(self, chat_id):
-        """India Top-100 NSE stocks desk (rotating scan)."""
+        """NSE Champion-4 desk (5y-tested winners, v16.2)."""
         try:
             self.send(chat_id, "\U0001f1ee\U0001f1f3 <b>NSE Desk</b> \u2014 "
                                "Top stocks scan ho rahe hain (30-60 sec)...")

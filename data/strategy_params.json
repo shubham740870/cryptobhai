@@ -76,7 +76,14 @@
    "sumR": 10.1,
    "PF": 1.07,
    "DD": 9.8
-  }
+  },
+  "locked_stocks": [
+   "BHARTIARTL",
+   "SBIN",
+   "MARUTI",
+   "AXISBANK"
+  ],
+  "re_test": "quarterly self-audit \u2014 gire to replace"
  },
  "fx": {
   "params": {
@@ -102,6 +109,14 @@
    "sumR": 3.1,
    "PF": 1.08,
    "DD": 5.0
-  }
- }
+  },
+  "pairs": [
+   "GBPUSD",
+   "EURUSD",
+   "USDJPY",
+   "AUDUSD",
+   "USDCAD"
+  ]
+ },
+ "_v16_2": "user-approved best-of: FX-5 majors + NSE champion-4 lock + investing \u20b9-track(10k/pick)"
 }

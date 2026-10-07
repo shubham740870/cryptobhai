@@ -1,4 +1,5 @@
-"""FOREX — GBPUSD + EURUSD (Yahoo hourly) — backtest-tuned params ke saath."""
+"""FOREX — Top-5 majors (v16.2, user-approved): 5y data pe validated winners.
+USDJPY +10.1R, EURUSD +4.7R, GBPUSD +4.3R, AUDUSD +3.1R, USDCAD +1.9R (NZD/EURGBP losers-excluded)."""
 import time
 from urllib.parse import quote
 
@@ -11,6 +12,9 @@ UA = {"User-Agent": "Mozilla/5.0 (compatible; CryptoBhaiAgent/1.0)"}
 PAIRS = {
     "GBPUSD": {"ysym": "GBPUSD=X", "name": "GBP/USD", "flag": "\U0001f1ec\U0001f1e7\U0001f1ec\U0001f1e7"},
     "EURUSD": {"ysym": "EURUSD=X", "name": "EUR/USD", "flag": "\U0001f1ea\U0001f1fa"},
+    "USDJPY": {"ysym": "USDJPY=X", "name": "USD/JPY", "flag": "\U0001f1ef\U0001f1f5"},   # 5y star +10.1R
+    "AUDUSD": {"ysym": "AUDUSD=X", "name": "AUD/USD", "flag": "\U0001f1e6\U0001f1fa"},
+    "USDCAD": {"ysym": "USDCAD=X", "name": "USD/CAD", "flag": "\U0001f1e8\U0001f1e6"},
 }
 _cache = {}
 

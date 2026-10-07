@@ -18,6 +18,7 @@ PF_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                        "data", "model_portfolio.json")
 UNIVERSE = nse.TICKERS[:60]          # liquid large caps
 TOP_N = 10
+NOTIONAL = 10000   # ₹ per pick (simulated track — 5y methodology: +96% vs NIFTY +27%)
 
 
 def _fmt(x):
@@ -107,11 +108,16 @@ def monthly_rebalance(post_fn, dry=False):
         row = top_map[sym]
         pro, _, px, _, _, parts, extras = row
         if sym in old:
-            new_hold.append(old[sym])
+            h = old[sym]
+            if not h.get("qty"):            # retro-fit: purane picks ko bhi ₹-track do
+                h["qty"] = round(NOTIONAL / px, 4) if px else 0
+                h["buy"] = px
+            new_hold.append(h)
         else:
             new_hold.append(dict(sym=sym, entry=px, stop=px * 0.90,
                                  target=extras.get("target") or px * 1.25,
-                                 score=pro, added=month))
+                                 score=pro, added=month,
+                                 qty=round(NOTIONAL / px, 4) if px else 0, buy=px))
     pf = {"month": month, "holdings": new_hold}
     _save_pf(pf)
 
@@ -204,18 +210,29 @@ def status():
                 "Actions pe chalta hi portfolio ban jayega.")
     lines = [f"📊 <b>MODEL PORTFOLIO</b> ({pf.get('month', '?')}) — "
              f"{len(holds)} stocks\n"]
-    tot = 0.0
+    tot = 0.0; tot_rs = 0.0; has_qty = any(h.get("qty") for h in holds)
     for h in holds:
         ta = nse.fetch_stock(h["sym"], ttl=1800)
         px = ta["price"] if ta else (h.get("entry") or 0)
         pnl = (px / h["entry"] - 1) * 100 if h.get("entry") and px else 0
         tot += pnl
+        rs = 0.0
+        if h.get("qty") and px:
+            rs = h["qty"] * (px - (h.get("buy") or h["entry"]))
+            tot_rs += rs
         emo = "🟢" if pnl >= 0 else "🔴"
+        extra = f" | ₹{rs:+,.0f}" if has_qty else ""
         lines.append(f"{emo} <b>{h['sym']}</b> {fmt_inr(px)} "
-                     f"({pnl:+.1f}%) | SL {fmt_inr(h.get('stop', 0))} | "
+                     f"({pnl:+.1f}%){extra} | SL {fmt_inr(h.get('stop', 0))} | "
                      f"TP {fmt_inr(h.get('target', 0))} | PRO {h.get('score', '?')}")
-    lines.append(f"\n💼 <b>Avg P&L</b>: {tot / max(len(holds), 1):+.1f}% | "
-                 f"Added: {pf.get('month')}")
+    if has_qty:
+        alloc = sum(h.get("qty", 0) * (h.get("buy") or h.get("entry") or 0) for h in holds)
+        lines.append(f"\n💼 <b>Avg P&L</b>: {tot / max(len(holds), 1):+.1f}% | "
+                     f"₹-track: {fmt_inr(alloc)} → {fmt_inr(alloc + tot_rs)} "
+                     f"({tot_rs:+,.0f})")
+    else:
+        lines.append(f"\n💼 <b>Avg P&L</b>: {tot / max(len(holds), 1):+.1f}% | "
+                     f"Added: {pf.get('month')}")
     return "\n".join(lines)
 
 
