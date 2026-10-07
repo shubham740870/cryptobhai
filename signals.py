@@ -47,6 +47,11 @@ def record_setups(setups, kind="SPOT"):
             continue
         if now - d["posted"].get(tag, 0) < COOLDOWN.get(kind, 6 * 86400):
             continue
+        # v16.1 (user-approved, 5y data): METALS/NSE/FX SHORTS OFF.
+        # 5y direction-split: metals SHORT -8.3R (29% WR), NSE SHORT -6.2R,
+        # FX SHORT -2.8R — structural drag. Crypto SHORT +10.3R (70.6%) = ON.
+        if kind in ("METALS", "NSE", "FX") and side == "SHORT":
+            continue
         # portfolio-heat + correlation caps (pro risk rules)
         open_now = [s for s in d["list"]
                     if s.get("status") in ("OPEN", "T1_HIT")]
