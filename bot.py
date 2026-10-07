@@ -549,8 +549,14 @@ class CryptoBot:
             except Exception:
                 log.exception("candle_chart fail, line chart pe fallback")
                 path = charts.trade_chart(a, hist)
+            try:   # FREE order-flow (OKX public tape)
+                import orderflow as of_mod
+                tline = of_mod.tape_line(a.get("symbol", ""))
+            except Exception:
+                tline = ""
             cap = (reports.trade_caption(dict(a, kind="FUTURES"))
                    + futures_mod.funding_note(a["symbol"])
+                   + ("\n" + tline if tline else "")
                    + "\n" + self._sizing(a.get("tier"))
                    + "\n\n" + self._tags("FUTURES", a.get("symbol", "")))
             if also_chat:
@@ -838,6 +844,14 @@ class CryptoBot:
                         sline = sent_mod.line(sp)
                     except Exception:
                         sline = ""
+                    if kind == "NSE":
+                        try:   # FREE institutional flows (NSE delivery%)
+                            import orderflow as of_mod
+                            nline = of_mod.nse_line(s.get("sym", ""))
+                        except Exception:
+                            nline = ""
+                        if nline:
+                            sline = (sline + "\n" + nline).strip()
                     self.post_channel(headers.get(kind, "")
                                       + "\n" + cardmod.card(s)
                                       + ("\n\n" + sline if sline else "")
