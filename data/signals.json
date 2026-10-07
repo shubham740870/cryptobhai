@@ -588,6 +588,37 @@
    "pnl_pct": 0.0,
    "result_pct": null,
    "closed_ts": null
+  },
+  {
+   "key": "HINDUNILVR_NSE_1791337245",
+   "last_change": "2026-10-07 01:35",
+   "sym": "HINDUNILVR",
+   "name": "HINDUNILVR",
+   "id": "nse-hindunilvr",
+   "kind": "NSE",
+   "side": "SHORT",
+   "mode": "aggressive",
+   "ts": "2026-10-07 01:40 IST",
+   "epoch": 1791337245.6912842,
+   "entry": 1895.199951171875,
+   "entry_lo": 1889.5143513183593,
+   "entry_hi": 1900.8855510253904,
+   "t1": 1869.2551067275476,
+   "t2": 1858.1358876799786,
+   "sl": 1987.8601099016157,
+   "risk_pct": 4.889202253959818,
+   "score": 60,
+   "lev": 1,
+   "liq": 0,
+   "confidence": "MEDIUM",
+   "status": "OPEN",
+   "hit_t1": false,
+   "hit_t2": false,
+   "hit_sl": false,
+   "last_price": 1895.199951171875,
+   "pnl_pct": 0.0,
+   "result_pct": null,
+   "closed_ts": null
   }
  ],
  "posted": {
@@ -608,6 +639,7 @@
   "HYPE_FUTURES": 1790982237.122264,
   "ICICIBANK_NSE": 1791240392.0689647,
   "HDFCBANK_NSE": 1791282683.1534808,
-  "FIGR_HELOC_FUTURES": 1791307095.1603835
+  "FIGR_HELOC_FUTURES": 1791307095.1603835,
+  "HINDUNILVR_NSE": 1791337245.6912842
  }
 }
