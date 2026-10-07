@@ -26,8 +26,8 @@
    "hit_t1": false,
    "hit_t2": false,
    "hit_sl": false,
-   "last_price": 83319,
-   "pnl_pct": -1.0256874525230533,
+   "last_price": 83329,
+   "pnl_pct": -1.013808491836118,
    "result_pct": null,
    "closed_ts": null
   },
@@ -57,8 +57,8 @@
    "hit_t1": false,
    "hit_t2": false,
    "hit_sl": false,
-   "last_price": 2561.28,
-   "pnl_pct": -4.878338188014811,
+   "last_price": 2560.22,
+   "pnl_pct": -4.917704817793961,
    "result_pct": null,
    "closed_ts": null
   },
@@ -88,8 +88,8 @@
    "hit_t1": false,
    "hit_t2": false,
    "hit_sl": false,
-   "last_price": 116.23,
-   "pnl_pct": -1.3074821321557,
+   "last_price": 116.03,
+   "pnl_pct": -1.4773049281082866,
    "result_pct": null,
    "closed_ts": null
   },
@@ -274,8 +274,8 @@
    "hit_t1": false,
    "hit_t2": false,
    "hit_sl": false,
-   "last_price": 0.253064,
-   "pnl_pct": 0.00454801794978034,
+   "last_price": 0.253511,
+   "pnl_pct": 0.18119121083387713,
    "result_pct": null,
    "closed_ts": null
   },
@@ -301,14 +301,14 @@
    "lev": 5,
    "liq": 0.07770951729278543,
    "confidence": "MEDIUM",
-   "status": "OPEN",
+   "status": "CLOSED_SL",
    "hit_t1": false,
    "hit_t2": false,
-   "hit_sl": false,
-   "last_price": 0.088492,
-   "pnl_pct": -7.5331999177517845,
-   "result_pct": null,
-   "closed_ts": null
+   "hit_sl": true,
+   "last_price": 0.088372,
+   "pnl_pct": -7.658589964421194,
+   "result_pct": -7.851390724420966,
+   "closed_ts": 1791380415.9118714
   },
   {
    "key": "XLM_FUTURES_1790920242",
@@ -460,8 +460,8 @@
    "hit_t1": false,
    "hit_t2": false,
    "hit_sl": false,
-   "last_price": 88.96,
-   "pnl_pct": 1.1663110044593425,
+   "last_price": 88.92,
+   "pnl_pct": 1.1208225552666988,
    "result_pct": null,
    "closed_ts": null
   },
@@ -522,8 +522,8 @@
    "hit_t1": false,
    "hit_t2": false,
    "hit_sl": false,
-   "last_price": 0.01091528,
-   "pnl_pct": 4.379051632920359,
+   "last_price": 0.01089431,
+   "pnl_pct": 4.56275478000019,
    "result_pct": null,
    "closed_ts": null
   },
@@ -646,8 +646,8 @@
    "hit_t1": false,
    "hit_t2": false,
    "hit_sl": false,
-   "last_price": 13.399242892530676,
-   "pnl_pct": 0.0,
+   "last_price": 13.4,
+   "pnl_pct": 0.005650374990562116,
    "result_pct": null,
    "closed_ts": null
   }
