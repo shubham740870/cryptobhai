@@ -35,6 +35,7 @@ HELP_TEXT = (
     "📒 /journal — Google Sheet trading journal ka live P&L\n"
     "🔥 /trending — Abhi kya trend me hai\n"
     "📊 /performance — Saare past signals ka P&L + win rate\n"
+    "🛡️ /hedge — BTC→GOLD rotation sleeve + USDINR filter status\n"
     "🤖 /autoscan — 24/7 auto-scanner on/off (har ghante naye setups)\n\n"
     "<b>PORTFOLIO</b>\n"
     "📦 /portfolio — Holdings ka live P&L chart + advice\n"
@@ -436,6 +437,8 @@ class CryptoBot:
             self.cmd_invite(chat_id, args)
         elif cmd in ("performance", "perf", "stats"):
             self.cmd_performance(chat_id)
+        elif cmd in ("hedge", "rotation"):
+            self.cmd_hedge(chat_id)
         else:
             self.send(chat_id, "Ye command samajh nahi aaya. /help likho 🙏")
 
@@ -663,9 +666,9 @@ class CryptoBot:
     SIZES = {"A+": "1.5%", "A": "1.5%", "B": "0.75%"}
 
     def _sizing(self, tier):
-        """Optimal sizing (5y test: 1.5% fixed = best return/DD)."""
-        return (f"\u2696\ufe0f Risk size: {self.SIZES.get(str(tier), '1.5%')} "
-                "of capital \u00b7 max 5 open \u00b7 heat 7.5%")
+        """v16 structure (user-approved): 70% signal-book + 30% BTC→GOLD hedge."""
+        return (f"\u2696\ufe0f Risk: {self.SIZES.get(str(tier), '1.5%')} of main-sleeve (70%) "
+                "\u00b7 30% BTC\u2192GOLD hedge \u00b7 max 5 open \u00b7 heat 7.5%")
 
     def _tags(self, kind, sym=""):
         base = self.TAGS.get(kind, self.TAGS["SPOT"])
@@ -970,8 +973,34 @@ class CryptoBot:
                 why = {"CLOSED_TP2": "Target 2 hit 🎯", "CLOSED_SL": "Stop-loss",
                        "CLOSED_TIME": "30d time exit"}.get(s["status"], s["status"])
                 lines.append(f"{emo} <b>{s['sym']}</b> <b>{r:+.1f}%</b> ({why}) — {s['ts'][:10]}")
+        try:
+            import hedges as hedges_mod
+            hline = hedges_mod.sleeve_status()
+            if hline:
+                lines.append(hline)
+        except Exception:
+            pass
         lines.append("\n⚠️ <i>Past performance future ka guarantee nahi. DYOR.</i>")
         self.send(chat_id, "\n".join(lines))
+
+    def cmd_hedge(self, chat_id):
+        """v16 approved hedge system ka live status."""
+        import hedges as hedges_mod
+        st = hedges_mod.rotation_update()
+        line = hedges_mod.sleeve_status() or \
+            "🔄 Sleeve agle scan pe set hoga (abhi init pending)"
+        stress = hedges_mod.usdinr_stress()
+        inr_line = ("🚫 USDINR EMA50 ke UPAR — NSE naye entries PAUSE "
+                    "(rupee-stress filter)" if stress else
+                    "✅ USDINR normal — NSE entries allowed")
+        self.send(chat_id,
+                  "🛡️ <b>HEDGE SYSTEM</b>\n"
+                  "Structure: 70% signal-book + 30% BTC→GOLD rotation\n"
+                  f"{line}\n"
+                  f"🔁 Sleeve flips (1y): {st.get('flips') or 0}\n"
+                  f"{inr_line}\n\n"
+                  "<i>5y backtest: ₹1L → ₹6.0L, maxDD -17.8% "
+                  "(100% main: ₹3.0L / -24.4%)</i>")
 
     # -------- portfolio --------
     def cmd_portfolio(self, chat_id):

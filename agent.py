@@ -243,6 +243,14 @@ def run_once():
         except Exception:
             log.exception("autoscan failed")
 
+    # 2c) HEDGE SLEEVE (v16 approved): 30% BTC→GOLD rotation state
+    try:
+        import hedges as hedges_mod
+        st = hedges_mod.rotation_update(lambda t: bot.post_channel(t[:900]))
+        log.info("hedge sleeve: %s since %s", st.get("mode"), st.get("since"))
+    except Exception:
+        log.exception("hedge sleeve update failed")
+
     # 2b) Trading journal check — PRIVATE: sirf personal chat,
     #     channel pe KABHI nahi (user ki trade history hai)
     if config.JOURNAL_SHEET_URL:

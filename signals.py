@@ -57,6 +57,13 @@ def record_setups(setups, kind="SPOT"):
                         if s.get("kind", "SPOT") in ("SPOT", "FUTURES")
                         and s.get("side", "LONG") == "LONG") >= MAX_CRYPTO_LONG):
             continue          # correlated longs cap
+        if kind == "NSE":
+            try:
+                import hedges as _hg
+                if _hg.usdinr_stress():
+                    continue   # rupee-stress: NSE naya risk OFF (5y: DD -24→-17%)
+            except Exception:
+                pass
         # OPTIMAL RISK (5y tested): 1.5% fixed best return/DD (+136%/13.9%)
         # anti-martingale reject hua (whipsaw) — plain fixed hi best
         last_change = time.strftime("%Y-%m-%d %H:%M", time.gmtime(now - 300))
