@@ -129,6 +129,18 @@ def fetch_markets(mode="aggressive", force=False):
                 all_coins.append(c)
     if all_coins:
         storage.cache_set(key, all_coins)
+        # repo-persist snapshot (429-storm fallback — git se aati hai)
+        try:
+            storage.save_json("markets_snapshot.json",
+                              {"ts": time.time(), "mode": mode,
+                               "coins": all_coins})
+        except Exception:
+            pass
+        return all_coins
+    # 429-storm fallback: last persisted snapshot (<12h) use karo
+    snap = storage.load_json("markets_snapshot.json", {})
+    if snap.get("coins") and time.time() - snap.get("ts", 0) < 12 * 3600:
+        return snap["coins"]
     return all_coins
 
 
