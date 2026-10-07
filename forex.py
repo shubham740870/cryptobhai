@@ -144,6 +144,7 @@ def card(s):
         f"\U0001f4cd Entry: {_fmt(s['entry'][0])} \u2013 {_fmt(s['entry'][1])}\n"
         f"\U0001f6d1 SL: {_fmt(s['sl'])} ({s['risk_pct']:.2f}% risk)\n"
         f"\U0001f3af TP1: {_fmt(s['t1'])} | TP2: {_fmt(s['t2'])}\n"
+        f"\u23f0 Execution: London/NY session (IST 12:30-21:30) best\n"
         f"<i>Hourly candles \u00b7 backtest-tuned \u00b7 educational, DYOR</i>")
 
 

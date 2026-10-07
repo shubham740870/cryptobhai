@@ -126,12 +126,16 @@ def evaluate_setups(analyzed):
         ch7, ch30 = a.get("ch7") or 0, a.get("ch30") or 0
 
         # ---- LONG setup: A+ (full confluence) ya A (relaxed) ----
+        # voltarget gate: blowoff vol me naya LONG nahi (v8 winner rule)
+        ap = a.get("atr_pct") or 0
         tier = None
         if (a["score"] >= MIN_SCORE_LONG and s20 and px > s20
-                and macd_h > 0 and rsi < 74 and "parabolic" not in a.get("tags", [])):
+                and macd_h > 0 and rsi < 74 and ap <= 8
+                and "parabolic" not in a.get("tags", [])):
             tier = "A+"
         elif (a["score"] >= 48 and s20 and px > s20
-              and rsi < 78 and "parabolic" not in a.get("tags", [])):
+              and rsi < 78 and ap <= 10
+              and "parabolic" not in a.get("tags", [])):
             tier = "A"
         if tier:
             st = _mk_setup(a, "LONG")
@@ -144,9 +148,10 @@ def evaluate_setups(analyzed):
         if (a["score"] <= MAX_SCORE_SHORT and s50 and px < s50
               and (s20 and s20 < s50 or not s20)
               and macd_h < 0 and ch7 <= -6 and ch30 <= -5
-              and 30 <= rsi <= 68):
+              and 30 <= rsi <= 68 and ap <= 10):
             tier = "A+"
-        elif (a["score"] <= 45 and s50 and px < s50 and macd_h < 0):
+        elif (a["score"] <= 45 and s50 and px < s50 and macd_h < 0
+              and ap <= 12):
             tier = "A"
         if tier:
             st = _mk_setup(a, "SHORT")

@@ -15,6 +15,9 @@ import analyzer
 import storage
 
 TTL_SIGNAL_DAYS = 30           # 30 din baad time-exit
+# Van Tharp portfolio-heat rules (research-backed):
+MAX_OPEN_TOTAL = 6             # 6 x 1% = 6% heat cap
+MAX_CRYPTO_LONG = 3            # altcoins = BTC-beta; same-direction cap 3
 COOLDOWN = {"SPOT": 6 * 86400, "FUTURES": 3 * 86400}
 
 
@@ -44,6 +47,16 @@ def record_setups(setups, kind="SPOT"):
             continue
         if now - d["posted"].get(tag, 0) < COOLDOWN.get(kind, 6 * 86400):
             continue
+        # portfolio-heat + correlation caps (pro risk rules)
+        open_now = [s for s in d["list"]
+                    if s.get("status") in ("OPEN", "T1_HIT")]
+        if len(open_now) >= MAX_OPEN_TOTAL:
+            continue          # heat full — naya risk nahi
+        if (kind in ("SPOT", "FUTURES") and side == "LONG"
+                and sum(1 for s in open_now
+                        if s.get("kind", "SPOT") in ("SPOT", "FUTURES")
+                        and s.get("side", "LONG") == "LONG") >= MAX_CRYPTO_LONG):
+            continue          # correlated longs cap
         last_change = time.strftime("%Y-%m-%d %H:%M", time.gmtime(now - 300))
         sig = {
             "key": f"{tag}_{int(now)}",
@@ -328,6 +341,11 @@ def exit_alerts(open_sigs=None, min_gap=3 * 3600):
             events.append(("GIVEBACK",
                            "\U0001f512 Profit hat raha hai \u2014 trail karo "
                            "ya close karo!"))
+        # LeBeau Chandelier (R-approx): peak se ~1R giveback = trend khatam
+        if best >= 1.2 and pnl_r <= best - 1.0:
+            events.append(("TRAIL",
+                           "\U0001f4c9 Chandelier: peak se 1R+ neeche \u2014 "
+                           "level pe trail karo ya niklo!"))
         if pnl_r <= -0.75:
             events.append(("SL_NEAR",
                            "\U0001f6d1 SL ke kareeb \u2014 ab exit ka socho!"))

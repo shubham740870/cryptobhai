@@ -551,6 +551,7 @@ class CryptoBot:
                 path = charts.trade_chart(a, hist)
             cap = (reports.trade_caption(dict(a, kind="FUTURES"))
                    + futures_mod.funding_note(a["symbol"])
+                   + "\n" + self._sizing(a.get("tier"))
                    + "\n\n" + self._tags("FUTURES", a.get("symbol", "")))
             if also_chat:
                 self.send_photo(also_chat, path, cap)
@@ -652,6 +653,13 @@ class CryptoBot:
         "FUTURES": "#Crypto #Altcoins #Futures \U0001f4b9",
         "SPOT": "#Crypto #Bitcoin #Signals",
     }
+
+    SIZES = {"A+": "1.5%", "A": "1.0%", "B": "0.5%"}
+
+    def _sizing(self, tier):
+        """Kelly-lite tiered sizing hint (pro practice)."""
+        return (f"\u2696\ufe0f Risk size: {self.SIZES.get(str(tier), '1.0%')} "
+                "of capital \u00b7 max 6 open \u00b7 heat 6%")
 
     def _tags(self, kind, sym=""):
         base = self.TAGS.get(kind, self.TAGS["SPOT"])
@@ -822,7 +830,8 @@ class CryptoBot:
                                else forex_mod if kind == "FX" else nse_mod)
                     self.post_channel(headers.get(kind, "")
                                       + "\n" + cardmod.card(s)
-                                      + "\n\n" + self._tags(kind, s.get("sym", "")))
+                                      + "\n\n" + self._tags(kind, s.get("sym", ""))
+                                      + "\n" + self._sizing(s.get("tier")))
                     posted += 1
                     time.sleep(0.5)
                 if posted:
