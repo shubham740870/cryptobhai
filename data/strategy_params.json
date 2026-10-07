@@ -32,10 +32,10 @@
    "rsi_filter": true,
    "trend": "ema50_200",
    "strategy": "voltarget",
-   "min_conf": 4,
+   "min_conf": 3,
    "rsi_band": [
-    35,
-    65
+    26,
+    74
    ],
    "max_hold": 25
   },
@@ -45,10 +45,11 @@
    "whale": true
   },
   "backtest": {
-   "WR": 57.7,
-   "sumR": 14.8,
-   "PF": 1.9,
-   "DD": 3.0
+   "WR": 58.1,
+   "sumR": 31.5,
+   "PF": 1.85,
+   "DD": 3.5,
+   "note": "8-coin validated; BTC/ETH 82-88% WR; +0.30R/trade"
   }
  },
  "nse": {
