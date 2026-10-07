@@ -828,10 +828,21 @@ class CryptoBot:
                         continue
                     cardmod = (metals_mod if kind == "METALS"
                                else forex_mod if kind == "FX" else nse_mod)
+                    try:   # FREE sentiment (Google News keywords)
+                        import sentiment as sent_mod
+                        sp = sent_mod.analyze(
+                            s.get("sym", ""),
+                            kind if kind in ("NSE", "FX") else
+                            ("CRYPTO" if kind == "FUTURES" else kind),
+                            name=s.get("name"))
+                        sline = sent_mod.line(sp)
+                    except Exception:
+                        sline = ""
                     self.post_channel(headers.get(kind, "")
                                       + "\n" + cardmod.card(s)
-                                      + "\n\n" + self._tags(kind, s.get("sym", ""))
-                                      + "\n" + self._sizing(s.get("tier")))
+                                      + ("\n\n" + sline if sline else "")
+                                      + "\n" + self._sizing(s.get("tier"))
+                                      + "\n" + self._tags(kind, s.get("sym", "")))
                     posted += 1
                     time.sleep(0.5)
                 if posted:

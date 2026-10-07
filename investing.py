@@ -140,6 +140,20 @@ def daily_check(post_fn):
     tot = 0.0
     actions = []
     for h in holds:
+        # results-week alert (binary event discipline)
+        try:
+            import sentiment as _sent
+            ei = _sent.earnings_date(h["sym"], "NSE")
+            if ei:
+                import datetime as _dt
+                ed = _dt.date.fromisoformat(ei[:10])
+                din = (ed - _dt.date.today()).days
+                if 0 <= din <= 7:
+                    lines.append(f"\U000026a0\ufe0f <b>{h['sym']}</b>: results "
+                                 f"{ei} ({din} din) \u2014 event risk, size "
+                                 "review karo!")
+        except Exception:
+            pass
         ta = nse.fetch_stock(h["sym"], ttl=1800)
         if not ta:
             continue
