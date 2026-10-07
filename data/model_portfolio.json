@@ -1,0 +1,85 @@
+{
+ "month": "2026-10",
+ "holdings": [
+  {
+   "sym": "AXISBANK",
+   "entry": 1242.5,
+   "stop": 1118.25,
+   "target": 1586.9269,
+   "score": 77,
+   "added": "2026-10"
+  },
+  {
+   "sym": "HDFCBANK",
+   "entry": 702.75,
+   "stop": 632.475,
+   "target": 987.90247,
+   "score": 74,
+   "added": "2026-10"
+  },
+  {
+   "sym": "KOTAKBANK",
+   "entry": 440.0,
+   "stop": 396.0,
+   "target": 470.97296,
+   "score": 74,
+   "added": "2026-10"
+  },
+  {
+   "sym": "ICICIBANK",
+   "entry": 1357.5,
+   "stop": 1221.75,
+   "target": 1747.9286,
+   "score": 70,
+   "added": "2026-10"
+  },
+  {
+   "sym": "SBIN",
+   "entry": 954.0,
+   "stop": 858.6,
+   "target": 1259.7693,
+   "score": 70,
+   "added": "2026-10"
+  },
+  {
+   "sym": "ONGC",
+   "entry": 221.8800048828125,
+   "stop": 199.69200439453127,
+   "target": 294.53333,
+   "score": 66,
+   "added": "2026-10"
+  },
+  {
+   "sym": "COALINDIA",
+   "entry": 414.5,
+   "stop": 373.05,
+   "target": 472.125,
+   "score": 65,
+   "added": "2026-10"
+  },
+  {
+   "sym": "DIVISLAB",
+   "entry": 9588.0,
+   "stop": 8629.2,
+   "target": 8489.759,
+   "score": 60,
+   "added": "2026-10"
+  },
+  {
+   "sym": "VEDL",
+   "entry": 261.3999938964844,
+   "stop": 235.25999450683594,
+   "target": 314.8889,
+   "score": 60,
+   "added": "2026-10"
+  },
+  {
+   "sym": "TCS",
+   "entry": 2080.300048828125,
+   "stop": 1872.2700439453126,
+   "target": 2449.195,
+   "score": 58,
+   "added": "2026-10"
+  }
+ ]
+}
