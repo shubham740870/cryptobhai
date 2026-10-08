@@ -26,8 +26,8 @@
    "hit_t1": false,
    "hit_t2": false,
    "hit_sl": false,
-   "last_price": 81145,
-   "pnl_pct": -3.6081735058628066,
+   "last_price": 81651,
+   "pnl_pct": -3.007098095103876,
    "result_pct": null,
    "closed_ts": null
   },
@@ -84,14 +84,14 @@
    "lev": 5,
    "liq": 95.62909330814652,
    "confidence": "MEDIUM",
-   "status": "OPEN",
+   "status": "CLOSED_SL",
    "hit_t1": false,
    "hit_t2": false,
-   "hit_sl": false,
-   "last_price": 108.42,
-   "pnl_pct": -7.939062314104114,
-   "result_pct": null,
-   "closed_ts": null
+   "hit_sl": true,
+   "last_price": 110.45,
+   "pnl_pct": -6.215360935185384,
+   "result_pct": -8.999999999999991,
+   "closed_ts": 1791497369.411794
   },
   {
    "key": "XAU_METALS_1790868400",
@@ -243,8 +243,8 @@
    "hit_t1": true,
    "hit_t2": false,
    "hit_sl": false,
-   "last_price": 1178.0,
-   "pnl_pct": 0.7582139848357203,
+   "last_price": 1207.699951171875,
+   "pnl_pct": -1.74388805154802,
    "result_pct": null,
    "closed_ts": null
   },
@@ -398,8 +398,8 @@
    "hit_t1": false,
    "hit_t2": false,
    "hit_sl": false,
-   "last_price": 2076.0,
-   "pnl_pct": -0.048192771084337345,
+   "last_price": 2080.300048828125,
+   "pnl_pct": -0.2554240399096385,
    "result_pct": null,
    "closed_ts": null
   },
@@ -460,8 +460,8 @@
    "hit_t1": false,
    "hit_t2": false,
    "hit_sl": false,
-   "last_price": 84.2,
-   "pnl_pct": -4.246814449466305,
+   "last_price": 84.47,
+   "pnl_pct": -3.9397674174159043,
    "result_pct": null,
    "closed_ts": null
   },
@@ -491,8 +491,8 @@
    "hit_t1": false,
    "hit_t2": false,
    "hit_sl": false,
-   "last_price": 1349.0,
-   "pnl_pct": -2.929957662855501,
+   "last_price": 1357.5,
+   "pnl_pct": -3.578515587343471,
    "result_pct": null,
    "closed_ts": null
   },
@@ -522,8 +522,8 @@
    "hit_t1": false,
    "hit_t2": false,
    "hit_sl": false,
-   "last_price": 0.01017125,
-   "pnl_pct": 10.896965439396991,
+   "last_price": 0.01028892,
+   "pnl_pct": 9.86614286825321,
    "result_pct": null,
    "closed_ts": null
   },
@@ -584,8 +584,8 @@
    "hit_t1": false,
    "hit_t2": false,
    "hit_sl": false,
-   "last_price": 1.018,
-   "pnl_pct": 0.13031560342862836,
+   "last_price": 1.027,
+   "pnl_pct": 1.0155541500208163,
    "result_pct": null,
    "closed_ts": null
   },
@@ -642,14 +642,14 @@
    "lev": 5,
    "liq": 10.88018522873491,
    "confidence": "MEDIUM",
-   "status": "OPEN",
+   "status": "CLOSED_SL",
    "hit_t1": false,
    "hit_t2": false,
-   "hit_sl": false,
-   "last_price": 12.44,
-   "pnl_pct": -7.158933532471455,
-   "result_pct": null,
-   "closed_ts": null
+   "hit_sl": true,
+   "last_price": 12.73,
+   "pnl_pct": -4.994632143758966,
+   "result_pct": -8.263373170551322,
+   "closed_ts": 1791497369.411794
   }
  ],
  "posted": {
