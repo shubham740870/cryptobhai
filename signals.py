@@ -96,7 +96,7 @@ def record_setups(setups, kind="SPOT"):
             "ts": time.strftime("%Y-%m-%d %H:%M IST"), "epoch": now,
             "entry": a["price"],                    # signal waqt ki price
             "entry_lo": a["entry"][0], "entry_hi": a["entry"][1],
-            "t1": a["t1"], "t2": a["t2"], "sl": a["sl"],
+            "t1": a["t1"], "t2": a["t2"], "sl": a["sl"], "sl0": a["sl"],
             "risk_pct": a.get("risk_pct"), "score": a.get("score"),
             "lev": a.get("lev"), "liq": a.get("liq"),
             "confidence": a.get("confidence"),
