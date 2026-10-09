@@ -52,6 +52,22 @@ def record_setups(setups, kind="SPOT"):
         # FX SHORT -2.8R — structural drag. Crypto SHORT +10.3R (70.6%) = ON.
         if kind in ("METALS", "NSE", "FX") and side == "SHORT":
             continue
+        # v16.3 SL-calibration (backtest-match): SL = 2.0-2.2x ATR (clamped)
+        apx = a.get("atr_pct")
+        px0 = a.get("price") or (a.get("entry") or [0, 0])[1]
+        if apx and px0:
+            if kind == "FUTURES":
+                mult, lo_c, hi_c = 2.0, 0.04, 0.10
+            elif kind == "NSE":
+                mult, lo_c, hi_c = 2.2, 0.03, 0.08
+            else:
+                mult = None
+            if mult:
+                rd_new = min(max(mult * apx / 100.0, lo_c), hi_c) * px0
+                sd = 1 if side == "LONG" else -1
+                a["sl"] = px0 - sd * rd_new
+                a["t1"] = px0 + sd * 1.5 * rd_new
+                a["t2"] = px0 + sd * 2.5 * rd_new
         # portfolio-heat + correlation caps (pro risk rules)
         open_now = [s for s in d["list"]
                     if s.get("status") in ("OPEN", "T1_HIT")]
@@ -160,14 +176,15 @@ def check_signals(mode="aggressive"):
             return ((target - entry) if side == "LONG"
                     else (entry - target)) / entry * 100
 
+        eff_sl = s["entry"] if s["hit_t1"] else s["sl"]   # v16.3: BE-stop T1 ke baad
         if side == "LONG":
             hit_t1 = hi_since >= s["t1"]
             hit_tp2 = hi_since >= s["t2"]
-            hit_sl = lo_since <= s["sl"]
+            hit_sl = lo_since <= eff_sl
         else:
             hit_t1 = lo_since <= s["t1"]
             hit_tp2 = lo_since <= s["t2"]
-            hit_sl = hi_since >= s["sl"]
+            hit_sl = hi_since >= eff_sl
 
         if not s["hit_t1"] and hit_t1:
             s["hit_t1"] = True
@@ -183,12 +200,13 @@ def check_signals(mode="aggressive"):
             s["closed_ts"] = now
             updates.append({"sig": s, "event": "CLOSED_TP2", "pnl_pct": s["result_pct"]})
             changed = True
-        elif hit_sl and not s["hit_t1"]:
-            s["status"] = "CLOSED_SL"
+        elif hit_sl:
+            be = bool(s["hit_t1"])
+            s["status"] = "CLOSED_BE" if be else "CLOSED_SL"
             s["hit_sl"] = True
-            s["result_pct"] = _result(s["sl"])
+            s["result_pct"] = _result(eff_sl)
             s["closed_ts"] = now
-            updates.append({"sig": s, "event": "CLOSED_SL", "pnl_pct": s["result_pct"]})
+            updates.append({"sig": s, "event": s["status"], "pnl_pct": s["result_pct"]})
             changed = True
         elif now - s["epoch"] > TTL_SIGNAL_DAYS * 86400:
             s["status"] = "CLOSED_TIME"
@@ -201,6 +219,29 @@ def check_signals(mode="aggressive"):
         _save(d)
     open_sigs = [s for s in d["list"] if s["status"] in ("OPEN", "T1_HIT")]
     return updates, open_sigs
+
+
+def attach_recent(sym, msg_id):
+    """Naye open signal ko uske channel-post ka msg_id jodo (trail-cop ref)."""
+    d = _load()
+    cands = [s for s in d["list"]
+             if s["sym"] == sym and s["status"] in ("OPEN", "T1_HIT")
+             and not s.get("msg_id")]
+    if cands:
+        cands[-1]["msg_id"] = msg_id
+        _save(d)
+
+
+def persist_cop(s):
+    """Trail-cop state (best_r/fired/sl-modify) ledger me save."""
+    d = _load()
+    for x in d["list"]:
+        if x.get("key") == s.get("key"):
+            for k in ("cop_best_r", "cop_fired", "cop_prev_px", "sl"):
+                if k in s:
+                    x[k] = s[k]
+            break
+    _save(d)
 
 
 def performance_summary(kind=None):

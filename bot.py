@@ -36,6 +36,7 @@ HELP_TEXT = (
     "🔥 /trending — Abhi kya trend me hai\n"
     "📊 /performance — Saare past signals ka P&L + win rate\n"
     "🛡️ /hedge — BTC→GOLD rotation sleeve + USDINR filter status\n"
+    "🕵️ /cop — TrailCop live trade-monitor (close/modify alerts)\n"
     "🤖 /autoscan — 24/7 auto-scanner on/off (har ghante naye setups)\n\n"
     "<b>PORTFOLIO</b>\n"
     "📦 /portfolio — Holdings ka live P&L chart + advice\n"
@@ -86,8 +87,9 @@ class CryptoBot:
             return None
 
     def send(self, chat_id, text):
-        """HTML text bhejo (auto-chunk + parse-fallback). Returns True/False."""
+        """HTML text bhejo (auto-chunk + parse-fallback). Returns msg_id/True/False."""
         ok_all = True
+        _last_mid = None
         for i in range(0, len(text), 3900):
             part = text[i:i + 3900]
             sent = False
@@ -97,6 +99,7 @@ class CryptoBot:
                     "disable_web_page_preview": True})
                 if resp and resp.get("ok"):
                     sent = True
+                    _last_mid = (resp.get("result") or {}).get("message_id") or _last_mid
                     break
                 if resp and not resp.get("ok"):
                     desc = resp.get("description", "")
@@ -114,7 +117,7 @@ class CryptoBot:
             if not sent:
                 ok_all = False
                 log.warning("sendMessage FAIL (chat_id=%s)", chat_id)
-        return ok_all
+        return _last_mid if _last_mid else ok_all
 
     def send_photo(self, chat_id, path, caption=""):
         """Chart image bhejo; fail hone pe caption text me chala jayega."""
@@ -182,18 +185,21 @@ class CryptoBot:
         """Connected channel pe post karo. Secret ID fail ho to known-good
         fallback ID try karta hai (delivery guarantee)."""
         cid = self.channel_id() or config.FALLBACK_CHANNEL
+        mid = None
         if photo:
             ok = self.send_photo(cid, photo, caption=text)
         else:
-            ok = self.send(cid, text)
+            mid = self.send(cid, text)
+            ok = bool(mid)
         if not ok and cid != config.FALLBACK_CHANNEL:
             log.warning("channel post fail via %s — fallback try", cid)
             if photo:
                 ok = self.send_photo(config.FALLBACK_CHANNEL, photo, caption=text)
             else:
-                ok = self.send(config.FALLBACK_CHANNEL, text)
+                mid = self.send(config.FALLBACK_CHANNEL, text)
+                ok = bool(mid)
         log.info("CHANNEL POST %s (id=%s)", "OK" if ok else "FAIL", cid)
-        return ok
+        return mid if isinstance(mid, int) else ok
 
     def post_channel_video(self, path, caption=""):
         cid = self.channel_id() or config.FALLBACK_CHANNEL
@@ -284,7 +290,8 @@ class CryptoBot:
             try:   # sheet me result update (Signals Log)
                 import journal as _jr
                 st = {"CLOSED_TP2": "\u2705 WIN TP2", "CLOSED_SL": "\u274c LOSS SL",
-                      "T1_HIT": "\U0001f3af TP1 HIT"}.get(u["event"], u["event"])
+                      "T1_HIT": "\U0001f3af TP1 HIT",
+                      "CLOSED_BE": "\U0001f512 BREAKEVEN"}.get(u["event"], u["event"])
                 _jr.sheet_log_result(s.get("key", ""), st,
                                      s.get("last_price") or s.get("entry", 0),
                                      u.get("pnl_pct") or 0)
@@ -439,6 +446,8 @@ class CryptoBot:
             self.cmd_performance(chat_id)
         elif cmd in ("hedge", "rotation"):
             self.cmd_hedge(chat_id)
+        elif cmd in ("cop", "trailcop"):
+            self.cmd_cop(chat_id)
         else:
             self.send(chat_id, "Ye command samajh nahi aaya. /help likho 🙏")
 
@@ -564,7 +573,13 @@ class CryptoBot:
                    + "\n\n" + self._tags("FUTURES", a.get("symbol", "")))
             if also_chat:
                 self.send_photo(also_chat, path, cap)
-            self.post_channel(cap, photo=path)
+            _mid = self.post_channel(cap, photo=path)
+            try:
+                if isinstance(_mid, int):
+                    import signals as _sg
+                    _sg.attach_recent(a.get("symbol") or a.get("sym"), _mid)
+            except Exception:
+                pass
             time.sleep(0.5)
 
     def cmd_pro(self, chat_id, args):
@@ -855,11 +870,17 @@ class CryptoBot:
                             nline = ""
                         if nline:
                             sline = (sline + "\n" + nline).strip()
-                    self.post_channel(headers.get(kind, "")
+                    _mid = self.post_channel(headers.get(kind, "")
                                       + "\n" + cardmod.card(s)
                                       + ("\n\n" + sline if sline else "")
                                       + "\n" + self._sizing(s.get("tier"))
                                       + "\n" + self._tags(kind, s.get("sym", "")))
+                    try:
+                        if isinstance(_mid, int):
+                            import signals as _sg
+                            _sg.attach_recent(s.get("sym"), _mid)
+                    except Exception:
+                        pass
                     posted += 1
                     time.sleep(0.5)
                 if posted:
@@ -981,6 +1002,29 @@ class CryptoBot:
         except Exception:
             pass
         lines.append("\n⚠️ <i>Past performance future ka guarantee nahi. DYOR.</i>")
+        self.send(chat_id, "\n".join(lines))
+
+    def cmd_cop(self, chat_id):
+        """TrailCop live monitor — har open trade ka protection status."""
+        _, open_sigs, _, _ = signals_mod.performance_summary()
+        if not open_sigs:
+            self.send(chat_id, "🕵️ Koi open trade nahi — cop coffee pi raha hai ☕")
+            return
+        lines = ["🕵️ <b>TRAIL-COP LIVE MONITOR</b>\n"]
+        for s in open_sigs:
+            rd = abs(s["entry"] - s["sl"])
+            side = 1 if s.get("side", "LONG") == "LONG" else -1
+            px = s.get("last_price") or s["entry"]
+            r = side * (px - s["entry"]) / rd if rd else 0
+            best = s.get("cop_best_r", r)
+            prot = "\U0001f6e1\ufe0f BE-stop active" if s.get("hit_t1") else \
+                f"SL {s['sl']:.6g}"
+            ref = f" \u21a9#{s['msg_id']}" if s.get("msg_id") else ""
+            lines.append(f"\u2022 <b>{s['sym']}</b> {s.get('side', 'LONG')} "
+                         f"{r:+.2f}R (best {best:+.2f}R) | {prot}{ref}")
+        lines.append("\n<i>Har 5-min tick pe audit: \U0001f6a8 emergency-close / "
+                     "\U0001f6e1\ufe0f SL-modify / \U0001f3af TP-modify alerts "
+                     "(original msg ka reply-ref ke saath)</i>")
         self.send(chat_id, "\n".join(lines))
 
     def cmd_hedge(self, chat_id):

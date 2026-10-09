@@ -183,6 +183,8 @@ def track_loop(budget_s=200, interval=60):
             alerts = signals_mod.exit_alerts(open_sigs)
             for a in alerts:
                 bot.publish_exit_alert(a)
+            import trailcop
+            trailcop.step(bot, open_sigs)
         except Exception:
             log.exception("track cycle fail")
         if _t.time() >= deadline:
@@ -233,6 +235,12 @@ def run_once():
             bot.publish_signal_updates(updates)
             log.info("Signal updates: %d", len(updates))
         log.info("Open signals: %d", len(open_sigs))
+        try:
+            import trailcop
+            trailcop.step(bot, open_sigs)
+            log.info("trailcop: %d trades audited", len(open_sigs))
+        except Exception:
+            log.exception("trailcop fail")
     except Exception:
         log.exception("signal check failed")
 

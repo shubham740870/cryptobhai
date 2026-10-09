@@ -282,6 +282,8 @@ EVENT_TEXT = {
                    "💡 Full profit book! 🎉"),
     "CLOSED_SL": ("🛑 <b>STOP-LOSS HIT — SIGNAL CLOSED</b>",
                   "💡 Chhota loss = part of the game. Discipline hi asli edge hai."),
+    "CLOSED_BE": ("🔒 <b>BREAKEVEN EXIT (stop = entry)</b>",
+                  "💡 T1 ke baad SL entry pe tha — zero-loss exit, risk-free trade complete."),
     "CLOSED_TIME": ("⏳ <b>SIGNAL CLOSED (30 din complete)</b>",
                     "💡 Time exit — position close karo, capital free karo."),
 }
