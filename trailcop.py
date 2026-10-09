@@ -77,7 +77,8 @@ def publish(bot, s, recs):
     emo = {"SL_MODIFY": "\U0001f6e1\ufe0f", "EMERGENCY_CLOSE": "\U0001f6a8",
            "TP_MODIFY": "\U0001f3af"}
     for action, level, why in recs:
-        txt = (f"{emo.get(action, '\u26a1')} <b>TRAIL-COP: {action}</b>\n"
+        e = emo.get(action, "\u26a1")
+        txt = (f"{e} <b>TRAIL-COP: {action}</b>\n"
                f"<b>{s['sym']}</b> {s.get('side', 'LONG')} "
                f"({s.get('kind', 'SPOT')})\n"
                f"{why}\n"
