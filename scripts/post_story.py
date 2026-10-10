@@ -6,7 +6,7 @@ import requests
 
 BOT = os.environ.get("TELEGRAM_TOKEN", "")
 CHAT = os.environ.get("CHANNEL_ID", "")
-CAP = ("\\U0001f947 FREE Gold/Silver/FX/NSE/Crypto signals \\u2014 AI tracked, "
+CAP = ("\U0001f947 FREE Gold/Silver/FX/NSE/Crypto signals \u2014 AI tracked, "
        "win/loss proof public. Join: t.me/caporatetrader")
 
 cands = sorted(glob.glob("data/reports/charts/*.png"),
@@ -18,7 +18,7 @@ try:
     r = requests.post(
         f"https://api.telegram.org/bot{BOT}/postStory",
         files={"img": open(img, "rb")},
-        data={"chat_id": CH,
+        data={"chat_id": CHAT,
               "content": '{"type":"photo","photo":"attach://img"}',
               "caption": CAP, "active_period": "43200"},
         timeout=30)

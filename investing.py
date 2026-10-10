@@ -16,7 +16,22 @@ import nse
 
 PF_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                        "data", "model_portfolio.json")
-UNIVERSE = nse.TICKERS[:60]          # liquid large caps
+# BUGFIX (v16.3c): pehle ye `nse.TICKERS[:60]` tha — v16.2 ke champion-4 lock ne
+# universe 60→4 silently tod diya. Ab independent hardcoded NIFTY-60 large-cap list
+# (Yahoo-live verified Oct-2026; TATAMOTORS/LTIM dead-tha isliye exclude).
+UNIVERSE = [
+    "RELIANCE", "HDFCBANK", "ICICIBANK", "INFY", "TCS", "ITC", "LT",
+    "KOTAKBANK", "AXISBANK", "SBIN", "BHARTIARTL", "M&M", "MARUTI", "TITAN",
+    "SUNPHARMA", "NTPC", "POWERGRID", "TATASTEEL", "HCLTECH", "BAJFINANCE",
+    "ULTRACEMCO", "ASIANPAINT", "NESTLEIND", "WIPRO", "TECHM", "JSWSTEEL",
+    "ADANIENT", "ADANIPORTS", "COALINDIA", "GRASIM", "HINDUNILVR", "HINDALCO",
+    "CIPLA", "DRREDDY", "DIVISLAB", "EICHERMOT", "BRITANNIA", "TATACONSUM",
+    "INDUSINDBK", "APOLLOHOSP", "HEROMOTOCO", "BAJAJ-AUTO", "BAJAJFINSV",
+    "SHRIRAMFIN", "SBILIFE", "HDFCLIFE", "BPCL", "ONGC", "BEL", "TRENT",
+    "JIOFIN", "TVSMOTOR", "VEDL", "DLF", "HAL", "SIEMENS", "PIDILITIND",
+    "PFC", "LICI", "ZYDUSLIFE",
+]
+UNIVERSE = list(dict.fromkeys(UNIVERSE))   # dedupe, order preserve
 TOP_N = 10
 NOTIONAL = 10000   # ₹ per pick (simulated track — 5y methodology: +96% vs NIFTY +27%)
 
@@ -56,8 +71,8 @@ def scan_all(max_n=60):
             pro, parts, extras = masters_invest.score_stock(ta["price"], fund, ta)
             out.append((pro, sym, ta["price"], fund, ta, parts, extras))
         except (TypeError, ValueError, KeyError, ZeroDivisionError):
-            continue
-        time.sleep(0.35)
+            pass
+        time.sleep(0.35)   # BUGFIX: continue pe sleep skip ho raha tha — ab har symbol ke baad pace
     out.sort(key=lambda x: x[0], reverse=True)
     return out
 
@@ -118,6 +133,13 @@ def monthly_rebalance(post_fn, dry=False):
                                  target=extras.get("target") or px * 1.25,
                                  score=pro, added=month,
                                  qty=round(NOTIONAL / px, 4) if px else 0, buy=px))
+    # BUGFIX (v16.3c): keeps (rank<30, top-10 ke bahar) pehle pf se SILENTLY DROP
+    # ho rahe the — ₹-track/history loss. Unhe track karte rehna hai jab tak
+    # daily-check unhe exit na kare ya monthly report REMOVE suggest na kare.
+    in_new = {h["sym"] for h in new_hold}
+    for sym, h in old.items():
+        if sym not in in_new and ranked.get(sym, 999) < 30:
+            new_hold.append(h)
     pf = {"month": month, "holdings": new_hold}
     _save_pf(pf)
 

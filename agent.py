@@ -170,6 +170,7 @@ def track_loop(budget_s=200, interval=60):
     exit_alerts (TP near / profit giveback / SL near) — turant post.
     """
     import time as _t
+    import signals as signals_mod   # BUGFIX (v16.3c): track_loop me import missing tha -> NameError har tick
     from bot import CryptoBot
 
     bot = CryptoBot(config.TELEGRAM_TOKEN)
@@ -328,18 +329,24 @@ def run_once():
         wkey = now.strftime("%Y-W%U")
         pf_empty = not inv_mod._load_pf().get("holdings")
         # monthly: 1st ko + pehli baar turant (bootstrap)
+        # BUGFIX (v16.3c): scan-fail pe month mark mat karo — warna pura mahina skip
         if ((now.day == 1 and state.get("last_invest_monthly") != mkey)
                 or pf_empty):
-            inv_mod.monthly_rebalance(lambda t: bot.post_channel(t[:3900]))
-            storage.set_state("last_invest_monthly", mkey)
-            log.info("Investing: monthly rebalance post (bootstrap=%s)",
-                     pf_empty)
+            mtxt = inv_mod.monthly_rebalance(
+                lambda t: bot.post_channel(t[:3900]))
+            if mtxt and not mtxt.startswith("\u26a0\ufe0f"):
+                storage.set_state("last_invest_monthly", mkey)
+            log.info("Investing: monthly rebalance ok=%s (bootstrap=%s)",
+                     bool(mtxt and not mtxt.startswith("\u26a0\ufe0f")), pf_empty)
         # weekly: Saturday + pehli baar turant
+        # BUGFIX (v16.3c): scan-fail (None) pe week mark mat karo
         if ((now.weekday() == 5 and state.get("last_invest_weekly") != wkey)
                 or not state.get("last_invest_weekly")):
-            inv_mod.weekly_deep_dive(lambda t: bot.post_channel(t[:3900]))
-            storage.set_state("last_invest_weekly", wkey)
-            log.info("Investing: weekly deep research post")
+            wtxt = inv_mod.weekly_deep_dive(
+                lambda t: bot.post_channel(t[:3900]))
+            if wtxt:
+                storage.set_state("last_invest_weekly", wkey)
+            log.info("Investing: weekly deep research ok=%s", bool(wtxt))
         if state.get("last_invest_daily") != today:
             inv_mod.daily_check(lambda t: bot.post_channel(t[:3900]))
             storage.set_state("last_invest_daily", today)
