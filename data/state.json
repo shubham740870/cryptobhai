@@ -1,12 +1,12 @@
 {
  "early_alerts": {
-  "BTC_LONG": "2026-10-11",
-  "ETH_LONG": "2026-10-09",
-  "SOL_LONG": "2026-10-11"
+  "BTC_LONG": "2026-10-12",
+  "ETH_LONG": "2026-10-12",
+  "SOL_LONG": "2026-10-12"
  },
- "last_top_post": 1791762476.749261,
- "last_daily": "2026-10-11",
- "last_weekly": "2026-10-05",
+ "last_top_post": 1791785401.5865874,
+ "last_daily": "2026-10-12",
+ "last_weekly": "2026-10-12",
  "last_invest_monthly": "2026-10",
  "last_invest_weekly": "2026-W40",
  "last_invest_daily": "2026-10-12"
