@@ -26,8 +26,8 @@
    "hit_t1": false,
    "hit_t2": false,
    "hit_sl": false,
-   "last_price": 83223,
-   "pnl_pct": -1.1397254751176331,
+   "last_price": 83324,
+   "pnl_pct": -1.0197479721795857,
    "result_pct": null,
    "closed_ts": null
   },
@@ -394,14 +394,14 @@
    "lev": 1,
    "liq": 0,
    "confidence": "MEDIUM",
-   "status": "OPEN",
+   "status": "CLOSED_SL",
    "hit_t1": false,
    "hit_t2": false,
-   "hit_sl": false,
-   "last_price": 2156.0,
-   "pnl_pct": -3.9036144578313254,
-   "result_pct": null,
-   "closed_ts": null
+   "hit_sl": true,
+   "last_price": 2269.300048828125,
+   "pnl_pct": -9.363857774849398,
+   "result_pct": -8.273700527279814,
+   "closed_ts": 1791892393.046313
   },
   {
    "key": "RAIN_FUTURES_1790945288",
@@ -491,8 +491,8 @@
    "hit_t1": false,
    "hit_t2": false,
    "hit_sl": false,
-   "last_price": 1355.0,
-   "pnl_pct": -3.387763256611715,
+   "last_price": 1360.199951171875,
+   "pnl_pct": -3.7845243789023075,
    "result_pct": null,
    "closed_ts": null
   },
@@ -522,8 +522,8 @@
    "hit_t1": false,
    "hit_t2": false,
    "hit_sl": false,
-   "last_price": 0.00997464,
-   "pnl_pct": 12.619324797879,
+   "last_price": 0.00996664,
+   "pnl_pct": 12.689407066674358,
    "result_pct": null,
    "closed_ts": null
   },
@@ -584,8 +584,8 @@
    "hit_t1": false,
    "hit_t2": false,
    "hit_sl": false,
-   "last_price": 1.064,
-   "pnl_pct": 4.654868174899867,
+   "last_price": 1.065,
+   "pnl_pct": 4.753228013410101,
    "result_pct": null,
    "closed_ts": null
   },
@@ -650,6 +650,39 @@
    "pnl_pct": -4.994632143758966,
    "result_pct": -8.263373170551322,
    "closed_ts": 1791497369.411794
+  },
+  {
+   "key": "XMR_FUTURES_1791892549",
+   "last_change": "2026-10-13 11:50",
+   "sym": "XMR",
+   "name": "Monero",
+   "id": "monero",
+   "kind": "FUTURES",
+   "side": "LONG",
+   "mode": "aggressive",
+   "ts": "2026-10-13 11:55 IST",
+   "epoch": 1791892549.5908668,
+   "entry": 534.5744281571731,
+   "entry_lo": 529.2286838756014,
+   "entry_hi": 539.9201724387448,
+   "t1": 600.3732274219599,
+   "t2": 644.2390935984845,
+   "sl": 490.70856198064854,
+   "sl0": 490.70856198064854,
+   "risk_pct": 7.385179215356069,
+   "score": 56.5,
+   "lev": 5,
+   "liq": 434.07443566362457,
+   "confidence": "MEDIUM",
+   "status": "OPEN",
+   "hit_t1": false,
+   "hit_t2": false,
+   "hit_sl": false,
+   "last_price": 534.5744281571731,
+   "pnl_pct": 0.0,
+   "result_pct": null,
+   "closed_ts": null,
+   "msg_id": true
   }
  ],
  "posted": {
@@ -672,6 +705,7 @@
   "HDFCBANK_NSE": 1791282683.1534808,
   "FIGR_HELOC_FUTURES": 1791307095.1603835,
   "HINDUNILVR_NSE": 1791337245.6912842,
-  "LINK_FUTURES": 1791379965.4776127
+  "LINK_FUTURES": 1791379965.4776127,
+  "XMR_FUTURES": 1791892549.5908668
  }
 }
