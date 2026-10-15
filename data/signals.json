@@ -494,7 +494,12 @@
    "last_price": 1360.199951171875,
    "pnl_pct": -3.7845243789023075,
    "result_pct": null,
-   "closed_ts": null
+   "closed_ts": null,
+   "cop_best_r": -0.8313686659874157,
+   "cop_fired": {
+    "emg": 1792043863.0515919
+   },
+   "cop_prev_px": 1363.800048828125
   },
   {
    "key": "RAIN_FUTURES_1791282646",
