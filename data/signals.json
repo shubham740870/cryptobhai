@@ -796,6 +796,39 @@
    "pnl_pct": -0.80939570323348,
    "result_pct": null,
    "closed_ts": null
+  },
+  {
+   "key": "XMR_FUTURES_1792322433",
+   "last_change": "2026-10-18 11:15",
+   "sym": "XMR",
+   "name": "Monero",
+   "id": "monero",
+   "kind": "FUTURES",
+   "side": "LONG",
+   "mode": "aggressive",
+   "ts": "2026-10-18 11:20 IST",
+   "epoch": 1792322433.6963859,
+   "entry": 580.7447965046588,
+   "entry_lo": 574.9373485396122,
+   "entry_hi": 586.5522444697053,
+   "t1": 649.2319119850875,
+   "t2": 694.8899889720401,
+   "sl": 535.0867195177062,
+   "sl0": 535.0867195177062,
+   "risk_pct": 7.075787770390747,
+   "score": 82.7,
+   "lev": 5,
+   "liq": 471.564774761783,
+   "confidence": "HIGH",
+   "status": "OPEN",
+   "hit_t1": false,
+   "hit_t2": false,
+   "hit_sl": false,
+   "last_price": 580.7447965046588,
+   "pnl_pct": 0.0,
+   "result_pct": null,
+   "closed_ts": null,
+   "msg_id": true
   }
  ],
  "posted": {
@@ -819,6 +852,6 @@
   "FIGR_HELOC_FUTURES": 1791307095.1603835,
   "HINDUNILVR_NSE": 1791337245.6912842,
   "LINK_FUTURES": 1791379965.4776127,
-  "XMR_FUTURES": 1791892549.5908668
+  "XMR_FUTURES": 1792322433.6963859
  }
 }
