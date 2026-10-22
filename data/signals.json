@@ -834,6 +834,39 @@
     "be": 1792677232.9976182
    },
    "cop_prev_px": 628.15
+  },
+  {
+   "key": "NEAR_FUTURES_1792694332",
+   "last_change": "2026-10-22 18:33",
+   "sym": "NEAR",
+   "name": "NEAR Protocol",
+   "id": "near",
+   "kind": "FUTURES",
+   "side": "LONG",
+   "mode": "aggressive",
+   "ts": "2026-10-22 18:38 IST",
+   "epoch": 1792694332.7694883,
+   "entry": 4.844975920314612,
+   "entry_lo": 4.796526161111466,
+   "entry_hi": 4.893425679517758,
+   "t1": 5.571722308361804,
+   "t2": 6.056219900393264,
+   "sl": 4.3604783282831505,
+   "sl0": 4.3604783282831505,
+   "risk_pct": 13.0,
+   "score": 59.4,
+   "lev": 5,
+   "liq": 3.934120447295465,
+   "confidence": "MEDIUM",
+   "status": "OPEN",
+   "hit_t1": false,
+   "hit_t2": false,
+   "hit_sl": false,
+   "last_price": 4.844975920314612,
+   "pnl_pct": 0.0,
+   "result_pct": null,
+   "closed_ts": null,
+   "msg_id": true
   }
  ],
  "posted": {
@@ -857,6 +890,7 @@
   "FIGR_HELOC_FUTURES": 1791307095.1603835,
   "HINDUNILVR_NSE": 1791337245.6912842,
   "LINK_FUTURES": 1791379965.4776127,
-  "XMR_FUTURES": 1792322433.6963859
+  "XMR_FUTURES": 1792322433.6963859,
+  "NEAR_FUTURES": 1792694332.7694883
  }
 }
