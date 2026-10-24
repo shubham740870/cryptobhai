@@ -866,7 +866,12 @@
    "pnl_pct": 0.0,
    "result_pct": null,
    "closed_ts": null,
-   "msg_id": true
+   "msg_id": true,
+   "cop_best_r": -0.9390674541991694,
+   "cop_fired": {
+    "emg": 1792852733.8338652
+   },
+   "cop_prev_px": 4.39
   }
  ],
  "posted": {
