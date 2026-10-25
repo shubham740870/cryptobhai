@@ -869,9 +869,9 @@
    "msg_id": true,
    "cop_best_r": -0.8977875792752467,
    "cop_fired": {
-    "emg": 1792908908.8155787
+    "emg": 1792928587.933952
    },
-   "cop_prev_px": 4.41
+   "cop_prev_px": 4.39
   }
  ],
  "posted": {
