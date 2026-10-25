@@ -867,11 +867,11 @@
    "result_pct": null,
    "closed_ts": null,
    "msg_id": true,
-   "cop_best_r": -0.9390674541991694,
+   "cop_best_r": -0.8977875792752467,
    "cop_fired": {
-    "emg": 1792852733.8338652
+    "emg": 1792908908.8155787
    },
-   "cop_prev_px": 4.39
+   "cop_prev_px": 4.41
   }
  ],
  "posted": {
