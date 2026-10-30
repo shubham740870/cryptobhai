@@ -30,11 +30,11 @@
    "pnl_pct": -4.902980220738764,
    "result_pct": null,
    "closed_ts": null,
-   "cop_best_r": -0.9039161581837643,
+   "cop_best_r": -0.8940170242779847,
    "cop_fired": {
-    "emg": 1793328156.505158
+    "emg": 1793355102.9215746
    },
-   "cop_prev_px": 77334
+   "cop_prev_px": 77409
   },
   {
    "key": "ETH_FUTURES_1790868313",
