@@ -1074,6 +1074,39 @@
    "result_pct": -4.450526618759453,
    "closed_ts": 1793846165.0551565,
    "msg_id": true
+  },
+  {
+   "key": "BCH_FUTURES_1793876875",
+   "last_change": "2026-11-05 11:02",
+   "sym": "BCH",
+   "name": "Bitcoin Cash",
+   "id": "bitcoin-cash",
+   "kind": "FUTURES",
+   "side": "LONG",
+   "mode": "aggressive",
+   "ts": "2026-11-05 11:07 IST",
+   "epoch": 1793876875.4107382,
+   "entry": 287.56452939382075,
+   "entry_lo": 284.68888409988256,
+   "entry_hi": 290.44017468775894,
+   "t1": 324.29728924812343,
+   "t2": 348.7857958176586,
+   "sl": 263.07602282428564,
+   "sl0": 263.07602282428564,
+   "risk_pct": 7.664247033193101,
+   "score": 59.4,
+   "lev": 5,
+   "liq": 233.50239786778246,
+   "confidence": "MEDIUM",
+   "status": "OPEN",
+   "hit_t1": false,
+   "hit_t2": false,
+   "hit_sl": false,
+   "last_price": 287.56452939382075,
+   "pnl_pct": 0.0,
+   "result_pct": null,
+   "closed_ts": null,
+   "msg_id": true
   }
  ],
  "posted": {
@@ -1082,13 +1115,13 @@
   "XLM_FUTURES": 1792024697.7919252,
   "RAIN_FUTURES": 1792016601.840018,
   "HYPE_FUTURES": 1793279702.083421,
-  "HDFCBANK_NSE": 1791282683.1534808,
   "FIGR_HELOC_FUTURES": 1791307095.1603835,
   "HINDUNILVR_NSE": 1791337245.6912842,
   "LINK_FUTURES": 1791379965.4776127,
   "XMR_FUTURES": 1793300509.5171363,
   "NEAR_FUTURES": 1792694332.7694883,
   "ZEC_FUTURES": 1793806369.5076342,
-  "WBT_FUTURES": 1793846149.5281427
+  "WBT_FUTURES": 1793846149.5281427,
+  "BCH_FUTURES": 1793876875.4107382
  }
 }
