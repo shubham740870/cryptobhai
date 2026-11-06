@@ -1116,7 +1116,12 @@
    "pnl_pct": -4.230191192030294,
    "result_pct": null,
    "closed_ts": null,
-   "msg_id": true
+   "msg_id": true,
+   "cop_best_r": -0.9006073657941096,
+   "cop_fired": {
+    "emg": 1793977821.5968444
+   },
+   "cop_prev_px": 265.51
   },
   {
    "key": "LINK_FUTURES_1793904723",
