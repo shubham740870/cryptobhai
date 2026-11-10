@@ -952,7 +952,12 @@
    "pnl_pct": 2.135377578104806,
    "result_pct": null,
    "closed_ts": null,
-   "msg_id": true
+   "msg_id": true,
+   "cop_best_r": -0.8875604888910672,
+   "cop_fired": {
+    "emg": 1794333406.7941935
+   },
+   "cop_prev_px": 553.32
   },
   {
    "key": "ETH_FUTURES_1793396146",
