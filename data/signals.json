@@ -1764,6 +1764,38 @@
    "result_pct": null,
    "closed_ts": null,
    "msg_id": true
+  },
+  {
+   "key": "BTC_FUTURES_1795284268",
+   "last_change": "2026-11-21 17:59",
+   "sym": "BTC",
+   "name": "Bitcoin",
+   "id": "bitcoin",
+   "kind": "FUTURES",
+   "side": "SHORT",
+   "mode": "aggressive",
+   "ts": "2026-11-21 18:04 IST",
+   "epoch": 1795284268.0149996,
+   "entry": 60023.40679704245,
+   "entry_lo": 59423.17272907202,
+   "entry_hi": 60623.64086501288,
+   "t1": 52595.12224827983,
+   "t2": 47642.93254910476,
+   "sl": 64975.59649621753,
+   "sl0": 64975.59649621753,
+   "risk_pct": 9.0,
+   "score": 44.0,
+   "lev": 5,
+   "liq": 71307.80727488642,
+   "confidence": "MEDIUM",
+   "status": "OPEN",
+   "hit_t1": false,
+   "hit_t2": false,
+   "hit_sl": false,
+   "last_price": 60023.40679704245,
+   "pnl_pct": 0.0,
+   "result_pct": null,
+   "closed_ts": null
   }
  ],
  "posted": {
@@ -1777,7 +1809,7 @@
   "WBT_FUTURES": 1794587619.5980387,
   "BCH_FUTURES": 1793876875.4107382,
   "XRP_FUTURES": 1794587619.5980387,
-  "BTC_FUTURES": 1794735304.3637104,
+  "BTC_FUTURES": 1795284268.0149996,
   "BNB_FUTURES": 1795260005.7641506
  }
 }
