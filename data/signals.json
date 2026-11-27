@@ -1623,8 +1623,8 @@
    "hit_t1": false,
    "hit_t2": false,
    "hit_sl": false,
-   "last_price": 73.36,
-   "pnl_pct": -1.8448445544263181,
+   "last_price": 71.95,
+   "pnl_pct": 0.11264223431060622,
    "result_pct": null,
    "closed_ts": null
   },
@@ -1792,8 +1792,8 @@
    "hit_t1": false,
    "hit_t2": false,
    "hit_sl": false,
-   "last_price": 61614,
-   "pnl_pct": -2.6499548889916102,
+   "last_price": 59860,
+   "pnl_pct": 0.27223845789856566,
    "result_pct": null,
    "closed_ts": null
   },
@@ -1813,27 +1813,28 @@
    "entry_hi": 487.5916608213607,
    "t1": 410.3494175229273,
    "t2": 362.07301546140644,
-   "sl": 531.0404226767295,
+   "sl": 482.7640206152086,
    "sl0": 531.0404226767295,
    "risk_pct": 11.817193689245542,
    "score": 36.3,
    "lev": 5,
    "liq": 573.5236564908678,
    "confidence": "MEDIUM",
-   "status": "OPEN",
-   "hit_t1": false,
+   "status": "CLOSED_BE",
+   "hit_t1": true,
    "hit_t2": false,
-   "hit_sl": false,
-   "last_price": 443.34,
-   "pnl_pct": 8.166312925509397,
-   "result_pct": null,
-   "closed_ts": null,
+   "hit_sl": true,
+   "last_price": 399.07,
+   "pnl_pct": 17.33642463838822,
+   "result_pct": 0.0,
+   "closed_ts": 1795809850.7951102,
    "msg_id": true,
-   "cop_best_r": -0.82060753687292,
+   "cop_best_r": 1.7336424638388224,
    "cop_fired": {
-    "emg": 1795650094.9230974
+    "emg": 1795650094.9230974,
+    "be": 1795809764.6070833
    },
-   "cop_prev_px": 522.38
+   "cop_prev_px": 399.07
   },
   {
    "key": "ETH_FUTURES_1795482062",
@@ -1862,8 +1863,8 @@
    "hit_t1": false,
    "hit_t2": false,
    "hit_sl": false,
-   "last_price": 1728.34,
-   "pnl_pct": -1.1753200491490035,
+   "last_price": 1669.64,
+   "pnl_pct": 2.260920092770427,
    "result_pct": null,
    "closed_ts": null
   },
@@ -1960,8 +1961,8 @@
    "hit_t1": false,
    "hit_t2": false,
    "hit_sl": false,
-   "last_price": 2067.89990234375,
-   "pnl_pct": 0.0,
+   "last_price": 2102.5,
+   "pnl_pct": 1.6731998302739113,
    "result_pct": null,
    "closed_ts": null
   }
